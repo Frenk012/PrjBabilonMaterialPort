@@ -1,0 +1,34 @@
+package com.rave.projectbabylonmaterials.network;
+
+import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
+import com.rave.projectbabylonmaterials.network.client.ClientboundCritEffectPacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
+
+public final class PBNetwork {
+
+    private static final String PROTOCOL_VERSION = "1";
+    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
+            ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "main"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
+
+    private static int packetId;
+
+    private PBNetwork() {
+    }
+
+    public static void register() {
+        CHANNEL.registerMessage(
+                packetId++,
+                ClientboundCritEffectPacket.class,
+                ClientboundCritEffectPacket::encode,
+                ClientboundCritEffectPacket::decode,
+                ClientboundCritEffectPacket::handle
+        );
+    }
+}
+
