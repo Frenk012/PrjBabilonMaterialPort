@@ -6,6 +6,8 @@ import com.rave.projectbabylonmaterials.setbonus.ArmorPieceTooltipData;
 import com.rave.projectbabylonmaterials.setbonus.ArmorSetBonusManager;
 import com.rave.projectbabylonmaterials.setbonus.ArmorSetBonusTooltipData;
 import com.rave.projectbabylonmaterials.setbonus.ArmorSetTooltipData;
+import com.rave.projectbabylonmaterials.tooltip.DescriptionBoxTooltipData;
+import com.rave.projectbabylonmaterials.tooltip.IconLabelTooltipData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -75,6 +77,8 @@ public final class ArmorSetTooltipEvents {
             event.register(ArmorSetTooltipData.class, ArmorSetClientTooltip::new);
             event.register(ArmorPieceTooltipData.class, ArmorPieceClientTooltip::new);
             event.register(ArmorSetBonusTooltipData.class, ArmorSetBonusClientTooltip::new);
+            event.register(IconLabelTooltipData.class, IconLabelClientTooltip::new);
+            event.register(DescriptionBoxTooltipData.class, DescriptionBoxClientTooltip::new);
         }
     }
 
