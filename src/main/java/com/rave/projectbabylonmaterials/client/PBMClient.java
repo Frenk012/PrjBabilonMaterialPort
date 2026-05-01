@@ -2,9 +2,11 @@ package com.rave.projectbabylonmaterials.client;
 
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.client.gui.screen.MagicalInfuserScreen;
+import com.rave.projectbabylonmaterials.client.overlay.CombatStatsOverlay;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -17,5 +19,10 @@ public final class PBMClient {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> MenuScreens.register(PBMMenus.MAGICAL_INFUSER_MENU.get(), MagicalInfuserScreen::new));
+    }
+
+    @SubscribeEvent
+    public static void onRegisterGuiOverlays(RegisterGuiOverlaysEvent event) {
+        event.registerAboveAll("combat_stats", CombatStatsOverlay.HUD);
     }
 }

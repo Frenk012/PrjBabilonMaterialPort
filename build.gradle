@@ -31,6 +31,7 @@ minecraft {
 
             property 'mixin.env.remapRefMap', 'true' // Yesman added
             property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+            arg "-mixin.config=${mod_id}.mixins.json"
 
             mods {
                 "${mod_id}" {
@@ -79,7 +80,13 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     //implementation fg.deobf("curse.maven:epic-fight-mod-405076:7476040")
+    implementation fg.deobf("curse.maven:attributefix-280510:7612291")
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
+}
+
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
 }
 
 tasks.named('processResources', ProcessResources).configure {
@@ -106,7 +113,8 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.jar.archiveVersion,
                 'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                'MixinConfigs'            : "${mod_id}.mixins.json"
         ])
     }
 

@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.rave.projectbabylonmaterials.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "project_babylon_materials.refmap.json",
+  "mixins": [
+    "LivingEntityArmorMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
