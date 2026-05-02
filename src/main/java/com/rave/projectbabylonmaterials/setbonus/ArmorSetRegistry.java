@@ -1,6 +1,6 @@
 package com.rave.projectbabylonmaterials.setbonus;
 
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 
 import java.util.Collection;
@@ -47,9 +47,9 @@ public final class ArmorSetRegistry {
         return null;
     }
 
-    public static ArmorSetDefinition findMatching(Player player) {
+    public static ArmorSetDefinition findMatching(LivingEntity entity) {
         for (ArmorSetDefinition set : SETS_BY_ID.values()) {
-            if (set.matches(player)) {
+            if (set.matches(entity)) {
                 return set;
             }
         }

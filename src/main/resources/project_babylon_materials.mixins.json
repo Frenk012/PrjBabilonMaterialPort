@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "project_babylon_materials.refmap.json",
   "mixins": [
-    "LivingEntityArmorMixin"
+    "LivingEntityArmorMixin",
+    "IronsSpellbooksDamageSourcesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

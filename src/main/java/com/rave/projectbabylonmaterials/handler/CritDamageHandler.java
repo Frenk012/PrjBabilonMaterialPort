@@ -26,7 +26,7 @@ public final class CritDamageHandler {
             return;
         }
 
-        double critChance = attacker.getAttributeValue(PBAttributes.CRIT_CHANCE.get());
+        double critChance = getAttributeValueSafely(attacker, PBAttributes.CRIT_CHANCE.get());
         if (critChance <= 0.0D) {
             return;
         }
@@ -35,7 +35,7 @@ public final class CritDamageHandler {
             return;
         }
 
-        double critDamage = attacker.getAttributeValue(PBAttributes.CRIT_DAMAGE.get());
+        double critDamage = getAttributeValueSafely(attacker, PBAttributes.CRIT_DAMAGE.get());
         if (critDamage <= 0.0D) {
             return;
         }
@@ -63,6 +63,14 @@ public final class CritDamageHandler {
         PBNetwork.CHANNEL.send(PacketDistributor.NEAR.with(
                 PacketDistributor.TargetPoint.p(popupX, popupY, popupZ, 32.0D, serverLevel.dimension())
         ), packet);
+    }
+
+    private static double getAttributeValueSafely(LivingEntity entity, net.minecraft.world.entity.ai.attributes.Attribute attribute) {
+        try {
+            return entity.getAttributeValue(attribute);
+        } catch (IllegalArgumentException ignored) {
+            return 0.0D;
+        }
     }
 }
 

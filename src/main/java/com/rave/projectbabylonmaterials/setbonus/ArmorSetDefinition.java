@@ -1,7 +1,7 @@
 package com.rave.projectbabylonmaterials.setbonus;
 
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -59,36 +59,36 @@ public class ArmorSetDefinition {
         return allBonuses;
     }
 
-    public boolean matches(Player player) {
-        return matchesSlot(player.getItemBySlot(EquipmentSlot.HEAD), helmet)
-                && matchesSlot(player.getItemBySlot(EquipmentSlot.CHEST), chestplate)
-                && matchesSlot(player.getItemBySlot(EquipmentSlot.LEGS), leggings)
-                && matchesSlot(player.getItemBySlot(EquipmentSlot.FEET), boots);
+    public boolean matches(LivingEntity entity) {
+        return matchesSlot(entity.getItemBySlot(EquipmentSlot.HEAD), helmet)
+                && matchesSlot(entity.getItemBySlot(EquipmentSlot.CHEST), chestplate)
+                && matchesSlot(entity.getItemBySlot(EquipmentSlot.LEGS), leggings)
+                && matchesSlot(entity.getItemBySlot(EquipmentSlot.FEET), boots);
     }
 
-    public int countMatchedPieces(Player player) {
+    public int countMatchedPieces(LivingEntity entity) {
         int matchedPieces = 0;
-        if (matchesSlot(player.getItemBySlot(EquipmentSlot.HEAD), helmet)) {
+        if (matchesSlot(entity.getItemBySlot(EquipmentSlot.HEAD), helmet)) {
             matchedPieces++;
         }
-        if (matchesSlot(player.getItemBySlot(EquipmentSlot.CHEST), chestplate)) {
+        if (matchesSlot(entity.getItemBySlot(EquipmentSlot.CHEST), chestplate)) {
             matchedPieces++;
         }
-        if (matchesSlot(player.getItemBySlot(EquipmentSlot.LEGS), leggings)) {
+        if (matchesSlot(entity.getItemBySlot(EquipmentSlot.LEGS), leggings)) {
             matchedPieces++;
         }
-        if (matchesSlot(player.getItemBySlot(EquipmentSlot.FEET), boots)) {
+        if (matchesSlot(entity.getItemBySlot(EquipmentSlot.FEET), boots)) {
             matchedPieces++;
         }
         return matchedPieces;
     }
 
-    public boolean hasPiece(Player player, EquipmentSlot slot) {
+    public boolean hasPiece(LivingEntity entity, EquipmentSlot slot) {
         return switch (slot) {
-            case HEAD -> matchesSlot(player.getItemBySlot(slot), helmet);
-            case CHEST -> matchesSlot(player.getItemBySlot(slot), chestplate);
-            case LEGS -> matchesSlot(player.getItemBySlot(slot), leggings);
-            case FEET -> matchesSlot(player.getItemBySlot(slot), boots);
+            case HEAD -> matchesSlot(entity.getItemBySlot(slot), helmet);
+            case CHEST -> matchesSlot(entity.getItemBySlot(slot), chestplate);
+            case LEGS -> matchesSlot(entity.getItemBySlot(slot), leggings);
+            case FEET -> matchesSlot(entity.getItemBySlot(slot), boots);
             default -> false;
         };
     }

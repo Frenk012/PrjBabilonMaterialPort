@@ -32,6 +32,7 @@ public final class CombatStatsOverlay {
     private static final int HOTBAR_HALF_WIDTH = 91;
     private static final int HOTBAR_HEIGHT = 22;
     private static final int HOTBAR_GAP = 6;
+    private static final int OFFHAND_SHIFT_X = 26;
     private static final int BOTTOM_MARGIN = -14;
 
     public static final IGuiOverlay HUD = (gui, guiGraphics, partialTick, screenWidth, screenHeight) -> {
@@ -58,6 +59,9 @@ public final class CombatStatsOverlay {
         int boxHeight = BOX_PADDING_Y * 2 + ROW_HEIGHT * rows.size();
         int hotbarLeft = (screenWidth / 2) - HOTBAR_HALF_WIDTH;
         int x = hotbarLeft - HOTBAR_GAP - boxWidth;
+        if (!minecraft.player.getOffhandItem().isEmpty()) {
+            x -= OFFHAND_SHIFT_X;
+        }
         int y = screenHeight - HOTBAR_HEIGHT - BOTTOM_MARGIN - boxHeight;
 
         guiGraphics.fill(x, y, x + boxWidth, y + boxHeight, BACKGROUND_COLOR);

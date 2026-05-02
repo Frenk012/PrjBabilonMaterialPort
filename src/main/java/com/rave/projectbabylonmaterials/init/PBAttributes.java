@@ -32,8 +32,10 @@ public final class PBAttributes {
     }
 
     private static void onEntityAttributeModification(EntityAttributeModificationEvent event) {
-        event.add(EntityType.PLAYER, CRIT_CHANCE.get());
-        event.add(EntityType.PLAYER, CRIT_DAMAGE.get());
+        for (EntityType<? extends net.minecraft.world.entity.LivingEntity> entityType : event.getTypes()) {
+            event.add(entityType, CRIT_CHANCE.get());
+            event.add(entityType, CRIT_DAMAGE.get());
+        }
     }
 }
 

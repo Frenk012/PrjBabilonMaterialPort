@@ -1,4 +1,4 @@
-﻿{
+{
     "block.project_babylon_materials.dragonsteel_block":  "Блок драконостали",
     "block.project_babylon_materials.ethereal_block":  "Эфирный блок",
     "block.project_babylon_materials.everfrost_block":  "Блок эверфроста",
@@ -62,5 +62,6 @@
     "tooltip.project_babylon_materials.equipped":  "Надето",
     "tooltip.project_babylon_materials.missing":  "Отсутствует",
     "tooltip.project_babylon_materials.class_passive":  "Пассивный бонус брони",
-    "tooltip.project_babylon_materials.material_passive":  "Пассивный бонус материала"
+    "tooltip.project_babylon_materials.material_passive":  "Пассивный бонус материала",
+    "effect.project_babylon_materials.unstable":  "??????????????"
 }

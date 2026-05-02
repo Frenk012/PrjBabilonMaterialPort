@@ -9,6 +9,7 @@ import com.rave.projectbabylonmaterials.init.PBAttributes;
 import com.rave.projectbabylonmaterials.init.PBMBlockEntities;
 import com.rave.projectbabylonmaterials.init.PBMBlocks;
 import com.rave.projectbabylonmaterials.init.PBMCreativeTabs;
+import com.rave.projectbabylonmaterials.init.PBMEffects;
 import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
 import com.rave.projectbabylonmaterials.init.PBMRecipes;
@@ -38,6 +39,7 @@ public class ProjectBabylonMaterials {
         PBMBlocks.register(modBus);
         PBMItems.register(modBus);
         PBMCreativeTabs.register(modBus);
+        PBMEffects.register(modBus);
         PBMBlockEntities.register(modBus);
         PBMMenus.register(modBus);
         PBMRecipes.register(modBus);

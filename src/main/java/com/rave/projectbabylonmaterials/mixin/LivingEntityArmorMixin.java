@@ -19,13 +19,18 @@ public abstract class LivingEntityArmorMixin {
     public abstract int getArmorValue();
 
     @Inject(method = "getDamageAfterArmorAbsorb", at = @At("HEAD"), cancellable = true)
-    private void projectBabylonMaterials$applyArmorFormula(DamageSource damageSource, float damage, CallbackInfoReturnable<Float> cir) {
+    private void projectBabylonMaterials(DamageSource damageSource, float damage, CallbackInfoReturnable<Float> cir) {
         if (damageSource.is(DamageTypeTags.BYPASSES_ARMOR)) {
             return;
         }
 
         if (Float.isNaN(damage) || Float.isInfinite(damage)) {
             cir.setReturnValue(0.0F);
+            return;
+        }
+
+        if (ArmorCalculationHelper.shouldBypassPhysicalArmor(damageSource)) {
+            cir.setReturnValue(Math.max(0.0F, damage));
             return;
         }
 

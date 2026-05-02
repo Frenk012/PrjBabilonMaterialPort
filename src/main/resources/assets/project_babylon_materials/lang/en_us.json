@@ -1,4 +1,4 @@
-﻿{
+{
     "block.project_babylon_materials.dragonsteel_block":  "Dragonsteel Block",
     "block.project_babylon_materials.ethereal_block":  "Ethereal Block",
     "block.project_babylon_materials.everfrost_block":  "Everfrost Block",
@@ -62,5 +62,6 @@
     "tooltip.project_babylon_materials.equipped":  "Equipped",
     "tooltip.project_babylon_materials.missing":  "Missing",
     "tooltip.project_babylon_materials.class_passive":  "Armor Passive",
-    "tooltip.project_babylon_materials.material_passive":  "Material Passive"
+    "tooltip.project_babylon_materials.material_passive":  "Material Passive",
+    "effect.project_babylon_materials.unstable":  "Unstable"
 }

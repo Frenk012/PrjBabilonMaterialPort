@@ -2,7 +2,7 @@ package com.rave.projectbabylonmaterials.setbonus;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.List;
 
@@ -16,11 +16,11 @@ public interface ArmorSetBonus {
 
     ResourceLocation getIconTexture();
 
-    void apply(Player player);
+    void apply(LivingEntity entity);
 
-    void remove(Player player);
+    void remove(LivingEntity entity);
 
-    boolean isApplied(Player player);
+    boolean isApplied(LivingEntity entity);
 
     List<Component> getTooltipLines();
 }
