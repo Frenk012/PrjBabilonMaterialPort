@@ -39,6 +39,14 @@ public final class PBMItems {
     public static final RegistryObject<Item> NETHERITE_PLATE = registerSimpleItem("netherite_plate");
     public static final RegistryObject<Item> NETHERITE_NUGGET = registerSimpleItem("netherite_nugget");
 
+    public static final RegistryObject<Item> CLOTH = registerSimpleItem("cloth");
+    public static final RegistryObject<Item> DIAMOND_CLOTH = registerSimpleItem("diamond_cloth");
+    public static final RegistryObject<Item> GOLDEN_CLOTH = registerSimpleItem("golden_cloth");
+    public static final RegistryObject<Item> ICE_CLOTH = registerSimpleItem("ice_cloth");
+    public static final RegistryObject<Item> NETHERITE_CLOTH = registerSimpleItem("netherite_cloth");
+    public static final RegistryObject<Item> ETHEREAL_CLOTH = registerSimpleItem("ethereal_cloth");
+    public static final RegistryObject<Item> DRAGONSTEEL_CLOTH = registerSimpleItem("dragonsteel_cloth");
+
     public static final RegistryObject<Item> MAGICAL_ICE_SHARD = registerSimpleItem("magical_ice_shard");
     public static final RegistryObject<Item> MAGIC_DUST = registerSimpleItem("magic_dust");
     public static final RegistryObject<Item> AMETHYST_DUST = registerSimpleItem("amethyst_dust");

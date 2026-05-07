@@ -13,6 +13,9 @@ public final class ArmorCalculationHelper {
     private static final String IRONS_SPELLBOOKS_NAMESPACE = "irons_spellbooks";
     private ArmorCalculationHelper() {
     }
+    public static float getArmorScaleFactor() {
+        return ARMOR_SCALE_FACTOR;
+    }
     public static float applyAdjustedArmorFormula(LivingEntity entity, DamageSource source, float damage, float armorValue) {
         float armorToughness = (float) entity.getAttributeValue(Attributes.ARMOR_TOUGHNESS);
         float effectiveArmorNegation = resolveEffectiveArmorNegation(source, armorToughness);

@@ -60,6 +60,14 @@ public final class PBMCreativeTabs {
                         output.accept(PBMItems.RUBY.get());
                         output.accept(PBMItems.RUBY_DUST.get());
 
+                        output.accept(PBMItems.CLOTH.get());
+                        output.accept(PBMItems.DIAMOND_CLOTH.get());
+                        output.accept(PBMItems.GOLDEN_CLOTH.get());
+                        output.accept(PBMItems.ICE_CLOTH.get());
+                        output.accept(PBMItems.NETHERITE_CLOTH.get());
+                        output.accept(PBMItems.ETHEREAL_CLOTH.get());
+                        output.accept(PBMItems.DRAGONSTEEL_CLOTH.get());
+
                         output.accept(PBMItems.BOWL_AND_MORTAR.get());
                         output.accept(PBMItems.HANDLE.get());
                         output.accept(PBMItems.SHAFT.get());

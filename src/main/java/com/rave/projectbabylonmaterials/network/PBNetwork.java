@@ -2,6 +2,7 @@ package com.rave.projectbabylonmaterials.network;
 
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.network.client.ClientboundCritEffectPacket;
+import com.rave.projectbabylonmaterials.network.client.ClientboundDragonsteelCooldownPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -29,6 +30,12 @@ public final class PBNetwork {
                 ClientboundCritEffectPacket::decode,
                 ClientboundCritEffectPacket::handle
         );
+        CHANNEL.registerMessage(
+                packetId++,
+                ClientboundDragonsteelCooldownPacket.class,
+                ClientboundDragonsteelCooldownPacket::encode,
+                ClientboundDragonsteelCooldownPacket::decode,
+                ClientboundDragonsteelCooldownPacket::handle
+        );
     }
 }
-

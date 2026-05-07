@@ -6,7 +6,8 @@
   "refmap": "project_babylon_materials.refmap.json",
   "mixins": [
     "LivingEntityArmorMixin",
-    "IronsSpellbooksDamageSourcesMixin"
+    "IronsSpellbooksDamageSourcesMixin",
+    "EpicFightArmorCapabilityBuilderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

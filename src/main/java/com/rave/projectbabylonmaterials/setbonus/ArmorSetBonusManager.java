@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -128,11 +127,6 @@ public final class ArmorSetBonusManager {
     public static void onPlayerClone(PlayerEvent.Clone event) {
         ACTIVE_SETS.remove(event.getOriginal().getUUID());
         ACTIVE_SETS.remove(event.getEntity().getUUID());
-    }
-
-    @SubscribeEvent
-    public static void onLivingDeath(LivingDeathEvent event) {
-        clearActiveSet(event.getEntity());
     }
 
     @SubscribeEvent
@@ -269,3 +263,4 @@ public final class ArmorSetBonusManager {
         }
     }
 }
+
