@@ -6,6 +6,7 @@ import com.rave.projectbabylonmaterials.setbonus.ArmorSetBonusManager;
 import com.rave.projectbabylonmaterials.setbonus.ArmorSetBonusTooltipData;
 import com.rave.projectbabylonmaterials.setbonus.ArmorSetTooltipData;
 import com.rave.projectbabylonmaterials.tooltip.DescriptionBoxTooltipData;
+import com.rave.projectbabylonmaterials.tooltip.EnchantmentDetailsTooltipData;
 import com.rave.projectbabylonmaterials.tooltip.IconLabelTooltipData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -61,6 +62,7 @@ public final class ArmorSetTooltipEvents {
             event.register(ArmorSetBonusTooltipData.class, ArmorSetBonusClientTooltip::new);
             event.register(IconLabelTooltipData.class, IconLabelClientTooltip::new);
             event.register(DescriptionBoxTooltipData.class, DescriptionBoxClientTooltip::new);
+            event.register(EnchantmentDetailsTooltipData.class, EnchantmentDetailsClientTooltip::new);
         }
     }
     private static ArmorSetTooltipData.ArmorPieceEntry findArmorPieceForLine(ArmorSetTooltipData data, String line) {
@@ -92,7 +94,8 @@ public final class ArmorSetTooltipEvents {
         return bonus.type().getTitle().copy().withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(": ").withStyle(ChatFormatting.GOLD))
                 .append(bonus.displayName().copy().withStyle(ChatFormatting.AQUA));
-    }    private static String normalizeLine(String line) {
+    }
+    private static String normalizeLine(String line) {
         return line.stripLeading().stripTrailing();
     }
 }

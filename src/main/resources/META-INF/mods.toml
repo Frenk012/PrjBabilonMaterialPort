@@ -19,6 +19,13 @@ ordering="NONE"
 side="BOTH"
 
 [[dependencies.project_babylon_materials]]
+modId="attributefix"
+mandatory=true
+versionRange="[21.0.5,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.project_babylon_materials]]
 modId="minecraft"
 mandatory=true
 versionRange="${minecraft_version_range}"

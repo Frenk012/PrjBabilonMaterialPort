@@ -6,11 +6,13 @@ import com.rave.projectbabylonmaterials.config.PBMServerConfig;
 import com.rave.projectbabylonmaterials.handler.CritDamageHandler;
 import com.rave.projectbabylonmaterials.handler.LivingEntityHealthHandler;
 import com.rave.projectbabylonmaterials.handler.PlayerHealthHandler;
+import com.rave.projectbabylonmaterials.handler.VanillaEnchantmentRebalanceHandler;
 import com.rave.projectbabylonmaterials.init.PBAttributes;
 import com.rave.projectbabylonmaterials.init.PBMBlockEntities;
 import com.rave.projectbabylonmaterials.init.PBMBlocks;
 import com.rave.projectbabylonmaterials.init.PBMCreativeTabs;
 import com.rave.projectbabylonmaterials.init.PBMEffects;
+import com.rave.projectbabylonmaterials.init.PBMEnchantments;
 import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
 import com.rave.projectbabylonmaterials.init.PBMRecipes;
@@ -41,6 +43,7 @@ public class ProjectBabylonMaterials {
         PBMItems.register(modBus);
         PBMCreativeTabs.register(modBus);
         PBMEffects.register(modBus);
+        PBMEnchantments.register(modBus);
         PBMBlockEntities.register(modBus);
         PBMMenus.register(modBus);
         PBMRecipes.register(modBus);
@@ -48,5 +51,6 @@ public class ProjectBabylonMaterials {
         forgeBus.register(CritDamageHandler.class);
         forgeBus.register(LivingEntityHealthHandler.class);
         forgeBus.register(PlayerHealthHandler.class);
+        forgeBus.register(VanillaEnchantmentRebalanceHandler.class);
     }
 }
