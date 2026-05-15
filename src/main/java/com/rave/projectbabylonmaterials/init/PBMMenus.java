@@ -1,6 +1,7 @@
 package com.rave.projectbabylonmaterials.init;
 
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
+import com.rave.projectbabylonmaterials.menu.JewelryTableMenu;
 import com.rave.projectbabylonmaterials.menu.MagicalInfuserMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
@@ -15,6 +16,9 @@ public final class PBMMenus {
 
     public static final RegistryObject<MenuType<MagicalInfuserMenu>> MAGICAL_INFUSER_MENU =
             MENUS.register("magical_infuser", () -> IForgeMenuType.create(MagicalInfuserMenu::new));
+
+    public static final RegistryObject<MenuType<JewelryTableMenu>> JEWELRY_TABLE_MENU =
+            MENUS.register("jewelry_table", () -> IForgeMenuType.create(JewelryTableMenu::new));
 
     private PBMMenus() {
     }

@@ -1,6 +1,7 @@
 package com.rave.projectbabylonmaterials.init;
 
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
+import com.rave.projectbabylonmaterials.block.custom.JewelryTableBlock;
 import com.rave.projectbabylonmaterials.block.custom.MagicalInfuserBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -57,7 +58,6 @@ public final class PBMBlocks {
                     .sound(SoundType.STONE)
                     .requiresCorrectToolForDrops()));
 
-
     public static final RegistryObject<Block> DIAMOND_INGOT_BLOCK = BLOCKS.register("diamond_ingot_block",
             () -> new Block(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.DIAMOND)
@@ -89,6 +89,13 @@ public final class PBMBlocks {
     public static final RegistryObject<Block> MAGICAL_INFUSER_BLOCK = BLOCKS.register("magical_infuser_block",
             () -> new MagicalInfuserBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.GOLD)
+                    .strength(3.0F, 6.0F)
+                    .noOcclusion()
+                    .sound(SoundType.WOOD)));
+
+    public static final RegistryObject<Block> JEWERLY_TABLE_BLOCK = BLOCKS.register("jewerly_table_block",
+            () -> new JewelryTableBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
                     .strength(3.0F, 6.0F)
                     .noOcclusion()
                     .sound(SoundType.WOOD)));

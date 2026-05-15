@@ -6,14 +6,14 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
-public record EnchantmentDetailsTooltipData(Component title, Component appliesToLabel,
-                                            List<Entry> entries) implements TooltipComponent {
+public record EnchantmentDetailsTooltipData(Component title, Component appliesToLabel, List<SlotEntry> slots) implements TooltipComponent {
     public EnchantmentDetailsTooltipData {
-        entries = List.copyOf(entries);
+        slots = List.copyOf(slots);
     }
 
-    public record Entry(Component enchantmentName, Component description, List<ItemStack> applicableItems) {
-        public Entry {
+    public record SlotEntry(boolean empty, ItemStack iconStack, Component label, Component description, List<ItemStack> applicableItems) {
+        public SlotEntry {
+            iconStack = iconStack.copy();
             applicableItems = List.copyOf(applicableItems);
         }
     }

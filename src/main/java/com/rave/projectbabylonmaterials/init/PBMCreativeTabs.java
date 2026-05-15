@@ -51,6 +51,7 @@ public final class PBMCreativeTabs {
                         output.accept(PBMItems.MAGICAL_ICE_DEEPSLATE_ORE_ITEM.get());
                         output.accept(PBMItems.STEEL_BLOCK_ITEM.get());
                         output.accept(PBMItems.MAGICAL_INFUSER_BLOCK_ITEM.get());
+                        output.accept(PBMItems.JEWERLY_TABLE_BLOCK_ITEM.get());
 
                         output.accept(PBMItems.MAGICAL_ICE_SHARD.get());
                         output.accept(PBMItems.MAGIC_DUST.get());
@@ -76,6 +77,36 @@ public final class PBMCreativeTabs {
                         output.accept(PBMItems.RUBY_BLOCK_ITEM.get());
                         output.accept(PBMItems.RUBY_ORE_ITEM.get());
                         output.accept(PBMItems.RUBY_DEEPSLATE_ORE_ITEM.get());
+                    })
+                    .build());
+
+    public static final RegistryObject<CreativeModeTab> GEMS_TAB = CREATIVE_MODE_TABS.register("gems_tab",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("creativetab.project_babylon_materials.gems_tab"))
+                    .icon(() -> PBMItems.RUBY_STONE.get().getDefaultInstance())
+                    .displayItems((parameters, output) -> {
+                        output.accept(PBMItems.RUBY_STONE.get());
+                        output.accept(PBMItems.SAPPHIRE_STONE.get());
+                        output.accept(PBMItems.TOPAZ_STONE.get());
+                        output.accept(PBMItems.WHITE_STONE.get());
+                        output.accept(PBMItems.BLACK_STONE.get());
+                        output.accept(PBMItems.CHRIZOLITE_STONE.get());
+                        output.accept(PBMItems.MALACHITE_STONE.get());
+                        output.accept(PBMItems.GARNET_STONE.get());
+                        output.accept(PBMItems.LAPIS_STONE.get());
+                        output.accept(PBMItems.MANA_STONE.get());
+                        output.accept(PBMItems.END_STONE.get());
+                        output.accept(PBMItems.BLOOD_PEARL.get());
+                        output.accept(PBMItems.NORTHERN_STONE.get());
+                        output.accept(PBMItems.PYRITE_STONE.get());
+                        output.accept(PBMItems.MOON_PEARL.get());
+                        output.accept(PBMItems.DRAGON_STONE.get());
+                        output.accept(PBMItems.NATURE_STONE.get());
+                        output.accept(PBMItems.DIAMOND_STONE.get());
+                        output.accept(PBMItems.AMETHYST_STONE.get());
+                        output.accept(PBMItems.HEALTH_STONE.get());
+                        output.accept(PBMItems.EMERALD_STONE.get());
+                        output.accept(PBMItems.AQUAMARINE_STONE.get());
                     })
                     .build());
 

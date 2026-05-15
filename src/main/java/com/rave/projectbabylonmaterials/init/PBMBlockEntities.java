@@ -1,6 +1,7 @@
 package com.rave.projectbabylonmaterials.init;
 
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
+import com.rave.projectbabylonmaterials.block.entity.JewelryTableBlockEntity;
 import com.rave.projectbabylonmaterials.block.entity.MagicalInfuserBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -15,6 +16,10 @@ public final class PBMBlockEntities {
     public static final RegistryObject<BlockEntityType<MagicalInfuserBlockEntity>> MAGICAL_INFUSER_BLOCK_ENTITY =
             BLOCK_ENTITY_TYPES.register("magical_infuser", () ->
                     BlockEntityType.Builder.of(MagicalInfuserBlockEntity::new, PBMBlocks.MAGICAL_INFUSER_BLOCK.get()).build(null));
+
+    public static final RegistryObject<BlockEntityType<JewelryTableBlockEntity>> JEWELRY_TABLE_BLOCK_ENTITY =
+            BLOCK_ENTITY_TYPES.register("jewelry_table", () ->
+                    BlockEntityType.Builder.of(JewelryTableBlockEntity::new, PBMBlocks.JEWERLY_TABLE_BLOCK.get()).build(null));
 
     private PBMBlockEntities() {
     }

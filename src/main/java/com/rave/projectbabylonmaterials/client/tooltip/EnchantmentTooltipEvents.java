@@ -2,6 +2,7 @@ package com.rave.projectbabylonmaterials.client.tooltip;
 
 import com.mojang.datafixers.util.Either;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
+import com.rave.projectbabylonmaterials.enchantment.EnchantmentSlotHelper;
 import com.rave.projectbabylonmaterials.tooltip.EnchantmentDetailsTooltipData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -12,7 +13,6 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -20,10 +20,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Mod.EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -57,13 +55,7 @@ public final class EnchantmentTooltipEvents {
     @SubscribeEvent
     public static void onItemTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
-        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(stack);
-        if (enchantments.isEmpty()) {
-            return;
-        }
-
-        List<Enchantment> describedEnchantments = collectDescribedEnchantments(enchantments);
-        if (describedEnchantments.isEmpty()) {
+        if (Screen.hasAltDown() || !EnchantmentSlotHelper.hasEnchantmentTooltip(stack)) {
             return;
         }
 
@@ -73,45 +65,63 @@ public final class EnchantmentTooltipEvents {
             return;
         }
 
-        filterTooltipComponents(event.getToolTip(), enchantments);
+        filterTooltipComponents(event.getToolTip(), stack);
     }
 
     @SubscribeEvent
     public static void onGatherTooltipComponents(RenderTooltipEvent.GatherComponents event) {
-        if (!Screen.hasControlDown()) {
+        ItemStack stack = event.getItemStack();
+        if (!Screen.hasControlDown() || Screen.hasAltDown() || !EnchantmentSlotHelper.hasEnchantmentTooltip(stack)) {
             return;
         }
 
-        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(event.getItemStack());
-        if (enchantments.isEmpty()) {
-            return;
-        }
-
-        List<Enchantment> describedEnchantments = collectDescribedEnchantments(enchantments);
-        if (describedEnchantments.isEmpty()) {
-            return;
-        }
-
-        filterTooltipElements(event.getTooltipElements(), enchantments);
-
-        List<EnchantmentDetailsTooltipData.Entry> entries = new ArrayList<>();
-        for (Enchantment enchantment : describedEnchantments) {
-            entries.add(new EnchantmentDetailsTooltipData.Entry(
-                    Component.translatable(enchantment.getDescriptionId()),
-                    Component.translatable(getDescriptionKey(enchantment)),
-                    createApplicableItems(enchantment)
-            ));
-        }
-
-        event.getTooltipElements().add(Either.right(new EnchantmentDetailsTooltipData(
-                Component.translatable("tooltip.project_babylon_materials.enchantment_descriptions"),
-                Component.translatable("tooltip.project_babylon_materials.applies_to"),
-                entries
-        )));
+        filterTooltipElements(event.getTooltipElements(), stack);
+        event.getTooltipElements().add(Either.right(createTooltipData(stack)));
     }
 
-    private static void filterTooltipComponents(List<Component> tooltip, Map<Enchantment, Integer> enchantments) {
-        Set<String> enchantmentLines = buildEnchantmentLineSet(enchantments);
+    private static EnchantmentDetailsTooltipData createTooltipData(ItemStack stack) {
+        int visibleSlotCount = EnchantmentSlotHelper.getVisibleSlotCount(stack);
+        List<EnchantmentDetailsTooltipData.SlotEntry> slots = new ArrayList<>(visibleSlotCount);
+        List<EnchantmentSlotHelper.SlottedEnchantment> enchantments = EnchantmentSlotHelper.getOrderedEnchantments(stack);
+
+        for (int i = 0; i < visibleSlotCount; i++) {
+            if (i < enchantments.size()) {
+                EnchantmentSlotHelper.SlottedEnchantment slottedEnchantment = enchantments.get(i);
+                Enchantment enchantment = slottedEnchantment.enchantment();
+                slots.add(new EnchantmentDetailsTooltipData.SlotEntry(
+                        false,
+                        new ItemStack(Items.ENCHANTED_BOOK),
+                        enchantment.getFullname(slottedEnchantment.level()),
+                        createDescription(enchantment),
+                        createApplicableItems(enchantment)
+                ));
+            } else {
+                slots.add(new EnchantmentDetailsTooltipData.SlotEntry(
+                        true,
+                        ItemStack.EMPTY,
+                        Component.translatable("tooltip.project_babylon_materials.empty_slot"),
+                        Component.empty(),
+                        List.of()
+                ));
+            }
+        }
+
+        return new EnchantmentDetailsTooltipData(
+                Component.translatable("tooltip.project_babylon_materials.enchantments"),
+                Component.translatable("tooltip.project_babylon_materials.applies_to"),
+                slots
+        );
+    }
+
+    private static Component createDescription(Enchantment enchantment) {
+        String descriptionKey = enchantment.getDescriptionId() + ".desc";
+        return I18n.exists(descriptionKey)
+                ? Component.translatable(descriptionKey)
+                : Component.translatable("tooltip.project_babylon_materials.no_enchantment_description");
+    }
+
+    private static void filterTooltipComponents(List<Component> tooltip, ItemStack stack) {
+        Set<String> enchantmentLines = buildEnchantmentLineSet(stack);
         List<Component> filtered = new ArrayList<>(tooltip.size());
         boolean inModifierSection = false;
 
@@ -140,9 +150,8 @@ public final class EnchantmentTooltipEvents {
         tooltip.addAll(filtered);
     }
 
-    private static void filterTooltipElements(List<Either<FormattedText, TooltipComponent>> elements,
-                                              Map<Enchantment, Integer> enchantments) {
-        Set<String> enchantmentLines = buildEnchantmentLineSet(enchantments);
+    private static void filterTooltipElements(List<Either<FormattedText, TooltipComponent>> elements, ItemStack stack) {
+        Set<String> enchantmentLines = buildEnchantmentLineSet(stack);
         List<Either<FormattedText, TooltipComponent>> filtered = new ArrayList<>(elements.size());
         boolean inModifierSection = false;
 
@@ -176,10 +185,10 @@ public final class EnchantmentTooltipEvents {
         elements.addAll(filtered);
     }
 
-    private static Set<String> buildEnchantmentLineSet(Map<Enchantment, Integer> enchantments) {
+    private static Set<String> buildEnchantmentLineSet(ItemStack stack) {
         Set<String> enchantmentLines = new HashSet<>();
-        for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
-            enchantmentLines.add(entry.getKey().getFullname(entry.getValue()).getString());
+        for (EnchantmentSlotHelper.SlottedEnchantment enchantment : EnchantmentSlotHelper.getOrderedEnchantments(stack)) {
+            enchantmentLines.add(enchantment.enchantment().getFullname(enchantment.level()).getString());
         }
         return enchantmentLines;
     }
@@ -202,10 +211,12 @@ public final class EnchantmentTooltipEvents {
         if (line.isBlank()) {
             return true;
         }
+
         String trimmed = line.trim();
         if (trimmed.isEmpty()) {
             return true;
         }
+
         char first = trimmed.charAt(0);
         return first == '+' || first == '-' || Character.isDigit(first);
     }
@@ -224,25 +235,6 @@ public final class EnchantmentTooltipEvents {
         }
 
         return false;
-    }
-
-    private static List<Enchantment> collectDescribedEnchantments(Map<Enchantment, Integer> enchantments) {
-        List<Enchantment> describedEnchantments = new ArrayList<>();
-        for (Enchantment enchantment : enchantments.keySet()) {
-            if (hasDescription(enchantment)) {
-                describedEnchantments.add(enchantment);
-            }
-        }
-        describedEnchantments.sort(Comparator.comparing(Enchantment::getDescriptionId));
-        return describedEnchantments;
-    }
-
-    private static boolean hasDescription(Enchantment enchantment) {
-        return I18n.exists(getDescriptionKey(enchantment));
-    }
-
-    private static String getDescriptionKey(Enchantment enchantment) {
-        return enchantment.getDescriptionId() + ".desc";
     }
 
     private static List<ItemStack> createApplicableItems(Enchantment enchantment) {

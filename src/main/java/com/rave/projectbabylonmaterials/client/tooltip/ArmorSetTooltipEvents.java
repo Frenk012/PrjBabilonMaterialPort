@@ -7,6 +7,7 @@ import com.rave.projectbabylonmaterials.setbonus.ArmorSetBonusTooltipData;
 import com.rave.projectbabylonmaterials.setbonus.ArmorSetTooltipData;
 import com.rave.projectbabylonmaterials.tooltip.DescriptionBoxTooltipData;
 import com.rave.projectbabylonmaterials.tooltip.EnchantmentDetailsTooltipData;
+import com.rave.projectbabylonmaterials.tooltip.GemDetailsTooltipData;
 import com.rave.projectbabylonmaterials.tooltip.IconLabelTooltipData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -63,6 +64,7 @@ public final class ArmorSetTooltipEvents {
             event.register(IconLabelTooltipData.class, IconLabelClientTooltip::new);
             event.register(DescriptionBoxTooltipData.class, DescriptionBoxClientTooltip::new);
             event.register(EnchantmentDetailsTooltipData.class, EnchantmentDetailsClientTooltip::new);
+            event.register(GemDetailsTooltipData.class, GemDetailsClientTooltip::new);
         }
     }
     private static ArmorSetTooltipData.ArmorPieceEntry findArmorPieceForLine(ArmorSetTooltipData data, String line) {

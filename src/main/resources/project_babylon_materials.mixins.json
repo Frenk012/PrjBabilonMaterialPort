@@ -11,7 +11,13 @@
     "DamageEnchantmentMixin",
     "EnchantmentHelperFireAspectMixin",
     "ProtectionEnchantmentMixin",
-    "AbstractArrowAccessor"
+    "AbstractArrowAccessor",
+    "AnvilMenuEnchantmentSlotsMixin",
+    "ItemStackRarityNameMixin",
+    "ItemStackEnchantableMixin"
+  ],
+  "client": [
+    "AbstractContainerScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
