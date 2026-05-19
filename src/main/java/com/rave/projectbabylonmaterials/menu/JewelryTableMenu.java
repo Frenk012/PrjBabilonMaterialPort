@@ -1,6 +1,8 @@
 package com.rave.projectbabylonmaterials.menu;
 
 import com.rave.projectbabylonmaterials.block.entity.JewelryTableBlockEntity;
+import com.rave.projectbabylonmaterials.gem.GemUpgradeHelper;
+import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -11,8 +13,14 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+
+import java.util.Optional;
 
 public class JewelryTableMenu extends AbstractContainerMenu {
+    private static final int BUTTON_UPGRADE = 0;
+
     private final Container container;
 
     public JewelryTableMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buffer) {
@@ -27,9 +35,24 @@ public class JewelryTableMenu extends AbstractContainerMenu {
 
         container.startOpen(playerInventory.player);
 
-        this.addSlot(new Slot(container, JewelryTableBlockEntity.SLOT_LEFT_MATERIAL, 17, 21));
-        this.addSlot(new Slot(container, JewelryTableBlockEntity.SLOT_RIGHT_MATERIAL, 17, 52));
-        this.addSlot(new Slot(container, JewelryTableBlockEntity.SLOT_STONE, 75, 36));
+        this.addSlot(new Slot(container, JewelryTableBlockEntity.SLOT_LEFT_MATERIAL, 17, 21) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return isValidMaterial(stack);
+            }
+        });
+        this.addSlot(new Slot(container, JewelryTableBlockEntity.SLOT_RIGHT_MATERIAL, 17, 52) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return isValidMaterial(stack);
+            }
+        });
+        this.addSlot(new Slot(container, JewelryTableBlockEntity.SLOT_STONE, 75, 36) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return GemUpgradeHelper.isGem(stack);
+            }
+        });
         this.addSlot(new Slot(container, JewelryTableBlockEntity.SLOT_OUTPUT, 132, 36) {
             @Override
             public boolean mayPlace(ItemStack stack) {
@@ -103,6 +126,64 @@ public class JewelryTableMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public void slotsChanged(Container container) {
+        super.slotsChanged(container);
+        broadcastChanges();
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int buttonId) {
+        if (buttonId != BUTTON_UPGRADE) {
+            return super.clickMenuButton(player, buttonId);
+        }
+
+        if (player.level().isClientSide) {
+            return true;
+        }
+
+        if (!canAttemptUpgrade()) {
+            return false;
+        }
+
+        Optional<GemUpgradeHelper.UpgradeRecipe> recipeOptional = getCurrentRecipe();
+        if (recipeOptional.isEmpty()) {
+            return false;
+        }
+
+        GemUpgradeHelper.UpgradeRecipe recipe = recipeOptional.get();
+        if (player.experienceLevel < recipe.requiredXp()) {
+            return false;
+        }
+
+        if (!this.container.getItem(JewelryTableBlockEntity.SLOT_OUTPUT).isEmpty()) {
+            return false;
+        }
+
+        player.level().playSound(null, player.blockPosition(), SoundEvents.GRINDSTONE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
+
+        ItemStack gemStack = this.container.getItem(JewelryTableBlockEntity.SLOT_STONE);
+        ItemStack leftStack = this.container.getItem(JewelryTableBlockEntity.SLOT_LEFT_MATERIAL);
+        ItemStack rightStack = this.container.getItem(JewelryTableBlockEntity.SLOT_RIGHT_MATERIAL);
+
+        leftStack.shrink(leftStack.is(PBMItems.GEM_DUST.get()) ? recipe.requiredDust() : 1);
+        rightStack.shrink(rightStack.is(PBMItems.GEM_DUST.get()) ? recipe.requiredDust() : 1);
+        player.giveExperienceLevels(-recipe.requiredXp());
+
+        boolean success = player.getRandom().nextInt(100) < recipe.successChance();
+        if (success) {
+            ItemStack result = GemUpgradeHelper.createUpgradedGem(gemStack, recipe.nextRarity());
+            this.container.setItem(JewelryTableBlockEntity.SLOT_OUTPUT, result);
+            this.container.setItem(JewelryTableBlockEntity.SLOT_STONE, ItemStack.EMPTY);
+        } else {
+            GemUpgradeHelper.consumeFailedAttempt(gemStack);
+            this.container.setItem(JewelryTableBlockEntity.SLOT_STONE, gemStack);
+        }
+
+        broadcastChanges();
+        return true;
+    }
+
+    @Override
     public void removed(Player player) {
         super.removed(player);
         this.container.stopOpen(player);
@@ -120,5 +201,29 @@ public class JewelryTableMenu extends AbstractContainerMenu {
         for (int column = 0; column < 9; ++column) {
             this.addSlot(new Slot(playerInventory, column, 8 + column * 18, 142));
         }
+    }
+
+    public int getRequiredXp() {
+        return getCurrentRecipe().map(GemUpgradeHelper.UpgradeRecipe::requiredXp).orElse(0);
+    }
+
+    public boolean canAttemptUpgrade() {
+        return getCurrentRecipe().isPresent() && this.container.getItem(JewelryTableBlockEntity.SLOT_OUTPUT).isEmpty();
+    }
+
+    private Optional<GemUpgradeHelper.UpgradeRecipe> getCurrentRecipe() {
+        return GemUpgradeHelper.getUpgradeRecipe(
+                this.container.getItem(JewelryTableBlockEntity.SLOT_LEFT_MATERIAL),
+                this.container.getItem(JewelryTableBlockEntity.SLOT_RIGHT_MATERIAL),
+                this.container.getItem(JewelryTableBlockEntity.SLOT_STONE)
+        );
+    }
+
+    private static boolean isValidMaterial(ItemStack stack) {
+        return stack.is(PBMItems.GEM_DUST.get())
+                || stack.is(PBMItems.PURE_TEAR.get())
+                || stack.is(PBMItems.ANCIENT_AMBER.get())
+                || stack.is(PBMItems.MAGIC_CRYSTAL.get())
+                || stack.is(PBMItems.FATE_ORB.get());
     }
 }

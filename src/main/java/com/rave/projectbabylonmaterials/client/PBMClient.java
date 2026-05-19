@@ -4,6 +4,8 @@ import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.client.gem.GemClientProperties;
 import com.rave.projectbabylonmaterials.client.gui.screen.JewelryTableScreen;
 import com.rave.projectbabylonmaterials.client.gui.screen.MagicalInfuserScreen;
+import com.rave.projectbabylonmaterials.client.gui.screen.RefinementTableScreen;
+import com.rave.projectbabylonmaterials.client.gui.screen.ReforgeTableScreen;
 import com.rave.projectbabylonmaterials.client.overlay.CombatStatsOverlay;
 import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
@@ -31,6 +33,8 @@ public final class PBMClient {
         event.enqueueWork(() -> {
             MenuScreens.register(PBMMenus.MAGICAL_INFUSER_MENU.get(), MagicalInfuserScreen::new);
             MenuScreens.register(PBMMenus.JEWELRY_TABLE_MENU.get(), JewelryTableScreen::new);
+            MenuScreens.register(PBMMenus.REFORGE_TABLE_MENU.get(), ReforgeTableScreen::new);
+            MenuScreens.register(PBMMenus.REFINEMENT_TABLE_MENU.get(), RefinementTableScreen::new);
             registerGemProperties();
         });
     }

@@ -14,7 +14,8 @@
     "AbstractArrowAccessor",
     "AnvilMenuEnchantmentSlotsMixin",
     "ItemStackRarityNameMixin",
-    "ItemStackEnchantableMixin"
+    "ItemStackEnchantableMixin",
+    "CrossbowItemDrawSpeedMixin"
   ],
   "client": [
     "AbstractContainerScreenAccessor"

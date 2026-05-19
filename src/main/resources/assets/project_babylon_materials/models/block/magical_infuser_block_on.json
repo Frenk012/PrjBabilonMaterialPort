@@ -4,7 +4,7 @@
 	"texture_size": [128, 128],
 	"textures": {
 		"0": "project_babylon_materials:block/magical_infuser_on",
-		"particle": "project_babylon_materials:block/magical_infuser_on"
+		"particle": "minecraft:block/oak_planks"
 	},
 	"elements": [
 		{

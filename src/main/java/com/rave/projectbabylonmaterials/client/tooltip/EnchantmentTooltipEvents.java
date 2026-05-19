@@ -22,6 +22,7 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @Mod.EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -47,6 +48,25 @@ public final class EnchantmentTooltipEvents {
             "attribute.name.epicfight.offhand_impact",
             "attribute.name.epicfight.offhand_armor_negation",
             "attribute.name.epicfight.offhand_max_strikes"
+    );
+    private static final Set<String> EPIC_FIGHT_FALLBACK_SNIPPETS = Set.of(
+            "epic fight",
+            "hit % enemies per swing",
+            "hit % enemies per sming",
+            "enemies per swing",
+            "enemies per sming",
+            "impact",
+            "armor negation",
+            "max strikes",
+            "stun armor",
+            "weight",
+            "max stamina",
+            "stamina regen",
+            "execution resistance",
+            "offhand attack speed",
+            "offhand impact",
+            "offhand armor negation",
+            "offhand max strikes"
     );
 
     private EnchantmentTooltipEvents() {
@@ -77,6 +97,71 @@ public final class EnchantmentTooltipEvents {
 
         filterTooltipElements(event.getTooltipElements(), stack);
         event.getTooltipElements().add(Either.right(createTooltipData(stack)));
+    }
+
+    public static void filterTooltipComponents(List<Component> tooltip, ItemStack stack) {
+        Set<String> enchantmentLines = buildEnchantmentLineSet(stack);
+        List<Component> filtered = new ArrayList<>(tooltip.size());
+        boolean inModifierSection = false;
+
+        for (Component component : tooltip) {
+            String line = component.getString();
+            if (isVanillaEnchantmentLine(line, enchantmentLines) || isEpicFightLine(line)) {
+                continue;
+            }
+
+            if (isModifierHeader(line)) {
+                inModifierSection = true;
+                continue;
+            }
+
+            if (inModifierSection) {
+                if (looksLikeModifierLine(line) || isEpicFightLine(line)) {
+                    continue;
+                }
+                inModifierSection = false;
+            }
+
+            filtered.add(component);
+        }
+
+        tooltip.clear();
+        tooltip.addAll(filtered);
+    }
+
+    public static void filterTooltipElements(List<Either<FormattedText, TooltipComponent>> elements, ItemStack stack) {
+        Set<String> enchantmentLines = buildEnchantmentLineSet(stack);
+        List<Either<FormattedText, TooltipComponent>> filtered = new ArrayList<>(elements.size());
+        boolean inModifierSection = false;
+
+        for (Either<FormattedText, TooltipComponent> element : elements) {
+            if (element.left().isEmpty()) {
+                filtered.add(element);
+                continue;
+            }
+
+            String line = element.left().get().getString();
+            if (isVanillaEnchantmentLine(line, enchantmentLines) || isEpicFightLine(line)) {
+                continue;
+            }
+
+            if (isModifierHeader(line)) {
+                inModifierSection = true;
+                continue;
+            }
+
+            if (inModifierSection) {
+                if (looksLikeModifierLine(line) || isEpicFightLine(line)) {
+                    continue;
+                }
+                inModifierSection = false;
+            }
+
+            filtered.add(element);
+        }
+
+        elements.clear();
+        elements.addAll(filtered);
     }
 
     private static EnchantmentDetailsTooltipData createTooltipData(ItemStack stack) {
@@ -120,71 +205,6 @@ public final class EnchantmentTooltipEvents {
                 : Component.translatable("tooltip.project_babylon_materials.no_enchantment_description");
     }
 
-    private static void filterTooltipComponents(List<Component> tooltip, ItemStack stack) {
-        Set<String> enchantmentLines = buildEnchantmentLineSet(stack);
-        List<Component> filtered = new ArrayList<>(tooltip.size());
-        boolean inModifierSection = false;
-
-        for (Component component : tooltip) {
-            String line = component.getString();
-            if (isVanillaEnchantmentLine(line, enchantmentLines) || isEpicFightLine(line)) {
-                continue;
-            }
-
-            if (isModifierHeader(line)) {
-                inModifierSection = true;
-                continue;
-            }
-
-            if (inModifierSection) {
-                if (looksLikeModifierLine(line) || isEpicFightLine(line)) {
-                    continue;
-                }
-                inModifierSection = false;
-            }
-
-            filtered.add(component);
-        }
-
-        tooltip.clear();
-        tooltip.addAll(filtered);
-    }
-
-    private static void filterTooltipElements(List<Either<FormattedText, TooltipComponent>> elements, ItemStack stack) {
-        Set<String> enchantmentLines = buildEnchantmentLineSet(stack);
-        List<Either<FormattedText, TooltipComponent>> filtered = new ArrayList<>(elements.size());
-        boolean inModifierSection = false;
-
-        for (Either<FormattedText, TooltipComponent> element : elements) {
-            if (element.left().isEmpty()) {
-                filtered.add(element);
-                continue;
-            }
-
-            String line = element.left().get().getString();
-            if (isVanillaEnchantmentLine(line, enchantmentLines) || isEpicFightLine(line)) {
-                continue;
-            }
-
-            if (isModifierHeader(line)) {
-                inModifierSection = true;
-                continue;
-            }
-
-            if (inModifierSection) {
-                if (looksLikeModifierLine(line) || isEpicFightLine(line)) {
-                    continue;
-                }
-                inModifierSection = false;
-            }
-
-            filtered.add(element);
-        }
-
-        elements.clear();
-        elements.addAll(filtered);
-    }
-
     private static Set<String> buildEnchantmentLineSet(ItemStack stack) {
         Set<String> enchantmentLines = new HashSet<>();
         for (EnchantmentSlotHelper.SlottedEnchantment enchantment : EnchantmentSlotHelper.getOrderedEnchantments(stack)) {
@@ -223,13 +243,25 @@ public final class EnchantmentTooltipEvents {
 
     private static boolean isEpicFightLine(String line) {
         String trimmed = line.trim();
-        if (trimmed.equals(I18n.get("gui.epicfight.attribute"))) {
+        String normalized = trimmed.toLowerCase(Locale.ROOT);
+        if (normalized.contains("epic fight")) {
+            return true;
+        }
+
+        String epicFightHeader = I18n.get("gui.epicfight.attribute");
+        if (!epicFightHeader.equals("gui.epicfight.attribute") && trimmed.equals(epicFightHeader)) {
             return true;
         }
 
         for (String key : EPIC_FIGHT_ATTRIBUTE_KEYS) {
             String localized = I18n.get(key);
-            if (!localized.equals(key) && trimmed.contains(localized)) {
+            if (!localized.equals(key) && normalized.contains(localized.toLowerCase(Locale.ROOT))) {
+                return true;
+            }
+        }
+
+        for (String snippet : EPIC_FIGHT_FALLBACK_SNIPPETS) {
+            if (normalized.contains(snippet)) {
                 return true;
             }
         }

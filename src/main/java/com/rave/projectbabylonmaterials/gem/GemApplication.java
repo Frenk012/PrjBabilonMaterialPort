@@ -72,7 +72,7 @@ public enum GemApplication {
         return new ArrayList<>(previews.values());
     }
 
-    private static boolean isMagicWeapon(Item item) {
+    public static boolean isMagicWeapon(Item item) {
         ResourceLocation key = ForgeRegistries.ITEMS.getKey(item);
         return key != null && "irons_spellbooks".equals(key.getNamespace()) && key.getPath().contains("staff");
     }

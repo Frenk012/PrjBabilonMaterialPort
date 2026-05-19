@@ -4,7 +4,7 @@
 	"texture_size": [128, 128],
 	"textures": {
 		"0": "project_babylon_materials:block/magical_infuser_off",
-		"particle": "project_babylon_materials:block/magical_infuser_off"
+		"particle": "minecraft:block/oak_planks"
 	},
 	"elements": [
 		{
@@ -138,6 +138,7 @@
 			}
 		}
 	],
+	"gui_light": "front",
 	"display": {
 		"thirdperson_righthand": {
 			"rotation": [75, 45, 0],
@@ -161,8 +162,9 @@
 			"scale": [0.3, 0.3, 0.3]
 		},
 		"gui": {
-			"rotation": [30, 45, 0],
-			"scale": [0.6, 0.6, 0.6]
+			"rotation": [30, 135, 0],
+			"translation": [0, -2.25, 0],
+			"scale": [0.46, 0.46, 0.46]
 		},
 		"fixed": {
 			"scale": [0.76, 0.76, 0.76]

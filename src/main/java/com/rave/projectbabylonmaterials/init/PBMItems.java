@@ -53,11 +53,16 @@ public final class PBMItems {
 
     public static final RegistryObject<Item> MAGICAL_ICE_SHARD = registerSimpleItem("magical_ice_shard");
     public static final RegistryObject<Item> MAGIC_DUST = registerSimpleItem("magic_dust");
+    public static final RegistryObject<Item> GEM_DUST = registerSimpleItem("gem_dust");
     public static final RegistryObject<Item> AMETHYST_DUST = registerSimpleItem("amethyst_dust");
     public static final RegistryObject<Item> QUARTZ_DUST = registerSimpleItem("quartz_dust");
     public static final RegistryObject<Item> DIAMOND_DUST = registerSimpleItem("diamond_dust");
     public static final RegistryObject<Item> RUBY = registerSimpleItem("ruby");
     public static final RegistryObject<Item> RUBY_DUST = registerSimpleItem("ruby_dust");
+    public static final RegistryObject<Item> PURE_TEAR = registerSimpleItem("pure_tear");
+    public static final RegistryObject<Item> ANCIENT_AMBER = registerSimpleItem("ancient_amber");
+    public static final RegistryObject<Item> MAGIC_CRYSTAL = registerSimpleItem("magic_crystal");
+    public static final RegistryObject<Item> FATE_ORB = registerSimpleItem("fate_orb");
 
     public static final RegistryObject<Item> HANDLE = registerSimpleItem("handle");
     public static final RegistryObject<Item> SHAFT = registerSimpleItem("shaft");
@@ -125,6 +130,10 @@ public final class PBMItems {
             () -> new BlockItem(PBMBlocks.MAGICAL_INFUSER_BLOCK.get(), new Item.Properties()));
     public static final RegistryObject<Item> JEWERLY_TABLE_BLOCK_ITEM = ITEMS.register("jewerly_table_block",
             () -> new BlockItem(PBMBlocks.JEWERLY_TABLE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> REFORGE_TABLE_BLOCK_ITEM = ITEMS.register("reforge_table_block",
+            () -> new BlockItem(PBMBlocks.REFORGE_TABLE_BLOCK.get(), new Item.Properties()));
+    public static final RegistryObject<Item> REFINEMENT_TABLE_BLOCK_ITEM = ITEMS.register("refinement_table_block",
+            () -> new BlockItem(PBMBlocks.REFINEMENT_TABLE_BLOCK.get(), new Item.Properties()));
 
     private PBMItems() {
     }

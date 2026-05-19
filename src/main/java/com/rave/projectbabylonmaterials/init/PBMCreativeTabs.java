@@ -38,6 +38,10 @@ public final class PBMCreativeTabs {
                         output.accept(PBMItems.IRON_PLATE.get());
                         output.accept(PBMItems.NETHERITE_PLATE.get());
                         output.accept(PBMItems.NETHERITE_NUGGET.get());
+                        output.accept(PBMItems.PURE_TEAR.get());
+                        output.accept(PBMItems.ANCIENT_AMBER.get());
+                        output.accept(PBMItems.MAGIC_CRYSTAL.get());
+                        output.accept(PBMItems.FATE_ORB.get());
                         output.accept(PBMItems.DIAMOND_SMITHHAMMER.get());
                         output.accept(PBMItems.GOLDEN_SMITHHAMMER.get());
                         output.accept(PBMItems.IRON_SMITHHAMMER.get());
@@ -52,9 +56,12 @@ public final class PBMCreativeTabs {
                         output.accept(PBMItems.STEEL_BLOCK_ITEM.get());
                         output.accept(PBMItems.MAGICAL_INFUSER_BLOCK_ITEM.get());
                         output.accept(PBMItems.JEWERLY_TABLE_BLOCK_ITEM.get());
+                        output.accept(PBMItems.REFORGE_TABLE_BLOCK_ITEM.get());
+                        output.accept(PBMItems.REFINEMENT_TABLE_BLOCK_ITEM.get());
 
                         output.accept(PBMItems.MAGICAL_ICE_SHARD.get());
                         output.accept(PBMItems.MAGIC_DUST.get());
+                        output.accept(PBMItems.GEM_DUST.get());
                         output.accept(PBMItems.AMETHYST_DUST.get());
                         output.accept(PBMItems.QUARTZ_DUST.get());
                         output.accept(PBMItems.DIAMOND_DUST.get());

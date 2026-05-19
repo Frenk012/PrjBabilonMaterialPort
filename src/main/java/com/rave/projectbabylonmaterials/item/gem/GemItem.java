@@ -1,6 +1,7 @@
 package com.rave.projectbabylonmaterials.item.gem;
 
 import com.rave.projectbabylonmaterials.gem.GemType;
+import com.rave.projectbabylonmaterials.gem.GemUpgradeHelper;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityTier;
 import net.minecraft.ChatFormatting;
@@ -18,7 +19,7 @@ public final class GemItem extends Item {
     private final GemType gemType;
 
     public GemItem(GemType gemType) {
-        super(new Item.Properties());
+        super(new Item.Properties().stacksTo(1));
         this.gemType = gemType;
     }
 
@@ -30,6 +31,12 @@ public final class GemItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         ItemRarityTier rarity = ItemRarityHelper.getRarity(stack).orElse(ItemRarityTier.COMMON);
         tooltip.add(gemType.createDescription(rarity).copy().withStyle(ChatFormatting.GRAY));
+        if (rarity == ItemRarityTier.LEGENDARY) {
+            tooltip.add(Component.translatable("tooltip.project_babylon_materials.gem_cannot_upgrade").withStyle(ChatFormatting.DARK_GRAY));
+        } else {
+            tooltip.add(Component.translatable("tooltip.project_babylon_materials.gem_remaining_attempts", GemUpgradeHelper.getRemainingAttempts(stack))
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        }
         tooltip.add(Component.translatable("tooltip.project_babylon_materials.applies_to")
                 .append(": ")
                 .append(gemType.createApplicationsText())

@@ -1,7 +1,10 @@
 package com.rave.projectbabylonmaterials.rarity;
 
 import com.rave.projectbabylonmaterials.enchantment.EnchantmentSlotHelper;
+import com.rave.projectbabylonmaterials.gem.GemApplication;
 import com.rave.projectbabylonmaterials.gem.GemSlotHelper;
+import com.rave.projectbabylonmaterials.gem.GemUpgradeHelper;
+import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.item.gem.GemItem;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -44,7 +47,8 @@ public final class ItemRarityHelper {
                 || item instanceof TieredItem
                 || item instanceof BowItem
                 || item instanceof CrossbowItem
-                || item instanceof TridentItem;
+                || item instanceof TridentItem
+                || GemApplication.isMagicWeapon(item);
     }
 
     public static boolean hasRarity(ItemStack stack) {
@@ -66,11 +70,17 @@ public final class ItemRarityHelper {
         }
 
         if (hasRarity(stack)) {
-            return ensureTags(stack, random);
+            boolean changed = ensureTags(stack, random);
+            if (stack.getItem() instanceof GemItem) {
+                changed |= GemUpgradeHelper.ensureUpgradeAttempts(stack);
+            }
+            return changed;
         }
 
-        ItemRarityTier rarity = rollRarity(random);
-        applyRarity(stack, rarity, random);
+        applyRarity(stack, rollRarity(random), random);
+        if (stack.getItem() instanceof GemItem) {
+            GemUpgradeHelper.ensureUpgradeAttempts(stack);
+        }
         return true;
     }
 
@@ -85,6 +95,11 @@ public final class ItemRarityHelper {
     }
 
     public static MutableComponent createDisplayName(ItemStack stack, Component originalName) {
+        Optional<ItemRarityTier> fixedMaterialRarity = getFixedMaterialColor(stack);
+        if (fixedMaterialRarity.isPresent()) {
+            return originalName.copy().withStyle(fixedMaterialRarity.get().getColor());
+        }
+
         Optional<ItemRarityTier> rarity = getRarity(stack);
         if (rarity.isEmpty() || rarity.get() == ItemRarityTier.COMMON) {
             return originalName.copy();
@@ -98,7 +113,23 @@ public final class ItemRarityHelper {
                 .withStyle(rarity.get().getColor());
     }
 
-    private static ItemRarityTier rollRarity(RandomSource random) {
+    private static Optional<ItemRarityTier> getFixedMaterialColor(ItemStack stack) {
+        if (stack.is(PBMItems.PURE_TEAR.get())) {
+            return Optional.of(ItemRarityTier.UNCOMMON);
+        }
+        if (stack.is(PBMItems.ANCIENT_AMBER.get())) {
+            return Optional.of(ItemRarityTier.RARE);
+        }
+        if (stack.is(PBMItems.MAGIC_CRYSTAL.get())) {
+            return Optional.of(ItemRarityTier.EPIC);
+        }
+        if (stack.is(PBMItems.FATE_ORB.get())) {
+            return Optional.of(ItemRarityTier.LEGENDARY);
+        }
+        return Optional.empty();
+    }
+
+    public static ItemRarityTier rollRarity(RandomSource random) {
         int roll = random.nextInt(100) + 1;
         int cumulative = 0;
         for (ItemRarityTier rarity : ItemRarityTier.values()) {

@@ -3,6 +3,8 @@ package com.rave.projectbabylonmaterials.init;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.block.custom.JewelryTableBlock;
 import com.rave.projectbabylonmaterials.block.custom.MagicalInfuserBlock;
+import com.rave.projectbabylonmaterials.block.custom.RefinementTableBlock;
+import com.rave.projectbabylonmaterials.block.custom.ReforgeTableBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -99,6 +101,22 @@ public final class PBMBlocks {
                     .strength(3.0F, 6.0F)
                     .noOcclusion()
                     .sound(SoundType.WOOD)));
+
+    public static final RegistryObject<Block> REFORGE_TABLE_BLOCK = BLOCKS.register("reforge_table_block",
+            () -> new ReforgeTableBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.STONE)
+                    .strength(3.0F, 6.0F)
+                    .noOcclusion()
+                    .sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops()));
+
+    public static final RegistryObject<Block> REFINEMENT_TABLE_BLOCK = BLOCKS.register("refinement_table_block",
+            () -> new RefinementTableBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(3.0F, 6.0F)
+                    .noOcclusion()
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()));
 
     private PBMBlocks() {
     }

@@ -17,11 +17,13 @@ import java.util.List;
 public final class GemDetailsClientTooltip implements ClientTooltipComponent {
     private static final ResourceLocation EMPTY_SLOT_FRAME = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/tooltip/frame/stone/stone_frame_empty.png");
     private static final ResourceLocation EQUIPPED_SLOT_FRAME = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/tooltip/frame/stone/stone_frame_equipped.png");
-    private static final int SLOT_WIDTH = 126;
+    private static final int BASE_SLOT_WIDTH = 126;
+    private static final int MIN_SLOT_WIDTH = 126;
     private static final int SLOT_HEIGHT = 42;
     private static final int TITLE_HEIGHT = 10;
     private static final int SLOT_ICON_SIZE = 16;
-    private static final int APPLIES_ICON_SIZE = 10;
+    private static final int EQUIPPED_ICON_SIZE = 12;
+    private static final int APPLIES_ICON_SIZE = 9;
     private static final int PADDING_X = 5;
     private static final int PADDING_Y = 5;
     private static final int SLOT_GAP_Y = 4;
@@ -57,7 +59,7 @@ public final class GemDetailsClientTooltip implements ClientTooltipComponent {
 
     @Override
     public int getWidth(Font font) {
-        return PADDING_X * 2 + PANEL_PADDING_X * 2 + SLOT_WIDTH;
+        return PADDING_X * 2 + PANEL_PADDING_X * 2 + computeSlotWidth(font);
     }
 
     @Override
@@ -66,22 +68,32 @@ public final class GemDetailsClientTooltip implements ClientTooltipComponent {
 
     @Override
     public void renderImage(Font font, int x, int y, GuiGraphics guiGraphics) {
+        int slotWidth = computeSlotWidth(font);
         int titleX = x + PADDING_X;
         int titleY = y + PADDING_Y;
         guiGraphics.drawString(font, data.title(), titleX, titleY, TITLE_COLOR, false);
 
         int panelX = x + PADDING_X;
         int panelY = titleY + TITLE_HEIGHT + TITLE_GAP;
-        int panelWidth = PANEL_PADDING_X * 2 + SLOT_WIDTH;
+        int panelWidth = PANEL_PADDING_X * 2 + slotWidth;
         int panelHeight = PANEL_PADDING_Y * 2 + SLOT_HEIGHT * data.slots().size() + SLOT_GAP_Y * Math.max(0, data.slots().size() - 1);
         renderPanel(guiGraphics, panelX, panelY, panelWidth, panelHeight);
 
         int slotX = panelX + PANEL_PADDING_X;
         int slotY = panelY + PANEL_PADDING_Y;
         for (GemDetailsTooltipData.SlotEntry slot : data.slots()) {
-            renderSlot(guiGraphics, font, slotX, slotY, slot);
+            renderSlot(guiGraphics, font, slotX, slotY, slot, slotWidth);
             slotY += SLOT_HEIGHT + SLOT_GAP_Y;
         }
+    }
+
+    private int computeSlotWidth(Font font) {
+        int width = BASE_SLOT_WIDTH;
+        for (GemDetailsTooltipData.SlotEntry slot : data.slots()) {
+            int lineWidth = SLOT_ICON_SIZE + ICON_TEXT_GAP + scaledTextWidth(font, slot.label(), slot.empty() ? EMPTY_TEXT_SCALE : NAME_SCALE) + 10;
+            width = Math.max(width, lineWidth);
+        }
+        return Math.max(MIN_SLOT_WIDTH, width);
     }
 
     private void renderPanel(GuiGraphics guiGraphics, int x, int y, int width, int height) {
@@ -92,7 +104,7 @@ public final class GemDetailsClientTooltip implements ClientTooltipComponent {
         guiGraphics.fill(x + width - 1, y, x + width, y + height, PANEL_BORDER_COLOR);
     }
 
-    private void renderSlot(GuiGraphics guiGraphics, Font font, int x, int y, GemDetailsTooltipData.SlotEntry slot) {
+    private void renderSlot(GuiGraphics guiGraphics, Font font, int x, int y, GemDetailsTooltipData.SlotEntry slot, int slotWidth) {
         if (slot.empty()) {
             int iconY = y + (SLOT_HEIGHT - SLOT_ICON_SIZE) / 2;
             int textY = y + (SLOT_HEIGHT - scaledTextHeight(EMPTY_TEXT_SCALE)) / 2;
@@ -101,13 +113,14 @@ public final class GemDetailsClientTooltip implements ClientTooltipComponent {
             return;
         }
 
-        guiGraphics.blit(EQUIPPED_SLOT_FRAME, x, y + 2, 0, 0, SLOT_ICON_SIZE, SLOT_ICON_SIZE, SLOT_ICON_SIZE, SLOT_ICON_SIZE);
-        guiGraphics.renderItem(slot.iconStack(), x, y + 2);
+        int frameY = y + 2;
+        guiGraphics.blit(EQUIPPED_SLOT_FRAME, x, frameY, 0, 0, SLOT_ICON_SIZE, SLOT_ICON_SIZE, SLOT_ICON_SIZE, SLOT_ICON_SIZE);
+        renderCenteredScaledItem(guiGraphics, slot.iconStack(), x, frameY, SLOT_ICON_SIZE, EQUIPPED_ICON_SIZE);
         drawScaledText(guiGraphics, font, slot.label(), x + SLOT_ICON_SIZE + ICON_TEXT_GAP, y + 1, NAME_COLOR, NAME_SCALE);
 
         int contentX = x + SLOT_ICON_SIZE + ICON_TEXT_GAP;
         int descriptionY = y + 12;
-        for (FormattedCharSequence line : splitDescription(font, slot.description())) {
+        for (FormattedCharSequence line : splitDescription(font, slot.description(), slotWidth)) {
             drawScaledSequence(guiGraphics, font, line, contentX, descriptionY, DESCRIPTION_COLOR, DESCRIPTION_SCALE);
             descriptionY += scaledTextHeight(DESCRIPTION_SCALE);
         }
@@ -118,8 +131,8 @@ public final class GemDetailsClientTooltip implements ClientTooltipComponent {
         renderApplicableItems(guiGraphics, iconStartX, appliesY - 1, slot.applicableItems());
     }
 
-    private List<FormattedCharSequence> splitDescription(Font font, Component description) {
-        int maxWidth = Math.max(40, Math.round((SLOT_WIDTH - SLOT_ICON_SIZE - ICON_TEXT_GAP - 6) / DESCRIPTION_SCALE));
+    private List<FormattedCharSequence> splitDescription(Font font, Component description, int slotWidth) {
+        int maxWidth = Math.max(40, Math.round((slotWidth - SLOT_ICON_SIZE - ICON_TEXT_GAP - 6) / DESCRIPTION_SCALE));
         List<FormattedCharSequence> lines = font.split(description, maxWidth);
         return lines.size() <= DESCRIPTION_LINE_LIMIT ? lines : lines.subList(0, DESCRIPTION_LINE_LIMIT);
     }
@@ -130,6 +143,12 @@ public final class GemDetailsClientTooltip implements ClientTooltipComponent {
             renderScaledItem(guiGraphics, stack, currentX, y, APPLIES_ICON_SIZE / (float) SLOT_ICON_SIZE);
             currentX += APPLIES_ICON_SIZE + APPLIES_GAP;
         }
+    }
+
+    private void renderCenteredScaledItem(GuiGraphics guiGraphics, ItemStack stack, int frameX, int frameY, int frameSize, int iconSize) {
+        int offset = (frameSize - iconSize) / 2;
+        float scale = iconSize / 16.0F;
+        renderScaledItem(guiGraphics, stack, frameX + offset, frameY + offset, scale);
     }
 
     private void renderScaledItem(GuiGraphics guiGraphics, ItemStack stack, int x, int y, float scale) {

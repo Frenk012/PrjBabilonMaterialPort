@@ -36,7 +36,10 @@ public final class GemTooltipEvents {
         if (!Screen.hasAltDown()) {
             event.getToolTip().add(Component.translatable("tooltip.project_babylon_materials.hold_alt_gems")
                     .withStyle(ChatFormatting.WHITE));
+            return;
         }
+
+        EnchantmentTooltipEvents.filterTooltipComponents(event.getToolTip(), stack);
     }
 
     @SubscribeEvent
@@ -46,6 +49,7 @@ public final class GemTooltipEvents {
             return;
         }
 
+        EnchantmentTooltipEvents.filterTooltipElements(event.getTooltipElements(), stack);
         event.getTooltipElements().add(Either.right(createTooltipData(stack)));
     }
 
