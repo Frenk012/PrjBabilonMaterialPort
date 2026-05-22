@@ -40,25 +40,25 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
 
         container.startOpen(playerInventory.player);
 
-        this.addSlot(new Slot(container, ReforgeTableBlockEntity.SLOT_TOP_OUTPUT, 80, 13) {
+        this.addSlot(new Slot(container, ReforgeTableBlockEntity.SLOT_TOP_OUTPUT, 80, 22) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
             }
         });
-        this.addSlot(new Slot(container, ReforgeTableBlockEntity.SLOT_LEFT_INPUT, 27, 50) {
+        this.addSlot(new Slot(container, ReforgeTableBlockEntity.SLOT_LEFT_INPUT, 27, 59) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return isValidReforgeMaterial(stack);
             }
         });
-        this.addSlot(new Slot(container, ReforgeTableBlockEntity.SLOT_CENTER_INPUT, 80, 51) {
+        this.addSlot(new Slot(container, ReforgeTableBlockEntity.SLOT_CENTER_INPUT, 80, 60) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return ItemRarityHelper.supportsSlottedItem(stack);
             }
         });
-        this.addSlot(new Slot(container, ReforgeTableBlockEntity.SLOT_RIGHT_INPUT, 132, 50) {
+        this.addSlot(new Slot(container, ReforgeTableBlockEntity.SLOT_RIGHT_INPUT, 132, 59) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return GemType.fromStack(stack).isPresent();
@@ -219,14 +219,14 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
     private void addPlayerInventory(Inventory playerInventory) {
         for (int row = 0; row < 3; ++row) {
             for (int column = 0; column < 9; ++column) {
-                this.addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, 107 + row * 18));
+                this.addSlot(new Slot(playerInventory, column + row * 9 + 9, 8 + column * 18, 116 + row * 18));
             }
         }
     }
 
     private void addPlayerHotbar(Inventory playerInventory) {
         for (int column = 0; column < 9; ++column) {
-            this.addSlot(new Slot(playerInventory, column, 8 + column * 18, 165));
+            this.addSlot(new Slot(playerInventory, column, 8 + column * 18, 174));
         }
     }
 
@@ -298,3 +298,4 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
         player.displayClientMessage(Component.translatable(translationKey), true);
     }
 }
+

@@ -8,13 +8,17 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 public class MagicalInfuserScreen extends AbstractContainerScreen<MagicalInfuserMenu> {
     private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/magical_infuser.png");
+    private static final ResourceLocation DUST_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/dust_slot_icon.png");
+    private static final ResourceLocation INGOT_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/ingot_slot_icon.png");
     private static final int FUEL_U = 176;
     private static final int FUEL_V = 17;
     private static final int FUEL_WIDTH = 6;
     private static final int FUEL_HEIGHT = 25;
+    private static final int SLOT_ICON_SIZE = 16;
 
     public MagicalInfuserScreen(MagicalInfuserMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -28,6 +32,9 @@ public class MagicalInfuserScreen extends AbstractContainerScreen<MagicalInfuser
         int x = this.leftPos;
         int y = this.topPos;
         guiGraphics.blit(GUI_TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        renderSlotPlaceholder(guiGraphics, 0, DUST_SLOT_ICON);
+        renderSlotPlaceholder(guiGraphics, 1, INGOT_SLOT_ICON);
+        renderSlotPlaceholder(guiGraphics, 2, DUST_SLOT_ICON);
 
         int fuel = Math.min(20, this.menu.getFuelOperations());
         if (fuel > 0) {
@@ -54,5 +61,14 @@ public class MagicalInfuserScreen extends AbstractContainerScreen<MagicalInfuser
         this.renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    private void renderSlotPlaceholder(GuiGraphics guiGraphics, int slotIndex, ResourceLocation iconTexture) {
+        Slot slot = this.menu.slots.get(slotIndex);
+        if (slot.hasItem()) {
+            return;
+        }
+
+        guiGraphics.blit(iconTexture, this.leftPos + slot.x, this.topPos + slot.y, 0, 0, SLOT_ICON_SIZE, SLOT_ICON_SIZE, SLOT_ICON_SIZE, SLOT_ICON_SIZE);
     }
 }

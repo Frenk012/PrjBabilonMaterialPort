@@ -8,24 +8,31 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 public class JewelryTableScreen extends AbstractContainerScreen<JewelryTableMenu> {
     private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/jewerly_table.png");
     private static final ResourceLocation HAMMER_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/hammer_icon.png");
     private static final ResourceLocation HAMMER_ICON_HOVER = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/hammer_icon_chosen.png");
     private static final ResourceLocation EXP_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/exp_icon.png");
+    private static final ResourceLocation DUST_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/dust_slot_icon.png");
+    private static final ResourceLocation GEM_MATERIAL_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/gem_material_slot_icon.png");
+    private static final ResourceLocation GEM_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/gem_slot_icon.png");
     private static final int HAMMER_X = 49;
     private static final int HAMMER_Y = 36;
     private static final int HAMMER_SIZE = 16;
     private static final int XP_TEXT_X = 104;
     private static final int XP_TEXT_Y = 41;
-    private static final int XP_ICON_X = 109;
+    private static final int XP_ICON_X = 110;
     private static final int XP_ICON_Y = 37;
     private static final int XP_ICON_SIZE = 16;
     private static final float XP_SCALE = 0.8F;
+    private static final int SLOT_ICON_SIZE = 16;
 
     public JewelryTableScreen(JewelryTableMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
+        this.imageHeight = 170;
+        this.inventoryLabelY = this.imageHeight - 94;
         this.titleLabelY = 5;
     }
 
@@ -35,6 +42,9 @@ public class JewelryTableScreen extends AbstractContainerScreen<JewelryTableMenu
         int x = this.leftPos;
         int y = this.topPos;
         guiGraphics.blit(GUI_TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        renderSlotPlaceholder(guiGraphics, 0, DUST_SLOT_ICON);
+        renderSlotPlaceholder(guiGraphics, 1, GEM_MATERIAL_SLOT_ICON);
+        renderSlotPlaceholder(guiGraphics, 2, GEM_SLOT_ICON);
         renderHammerButton(guiGraphics, mouseX, mouseY);
         renderUpgradeCost(guiGraphics);
     }
@@ -95,4 +105,15 @@ public class JewelryTableScreen extends AbstractContainerScreen<JewelryTableMenu
         int y = this.topPos + HAMMER_Y;
         return mouseX >= x && mouseX < x + HAMMER_SIZE && mouseY >= y && mouseY < y + HAMMER_SIZE;
     }
+
+    private void renderSlotPlaceholder(GuiGraphics guiGraphics, int slotIndex, ResourceLocation iconTexture) {
+        Slot slot = this.menu.slots.get(slotIndex);
+        if (slot.hasItem()) {
+            return;
+        }
+
+        guiGraphics.blit(iconTexture, this.leftPos + slot.x, this.topPos + slot.y, 0, 0, SLOT_ICON_SIZE, SLOT_ICON_SIZE, SLOT_ICON_SIZE, SLOT_ICON_SIZE);
+    }
 }
+
+

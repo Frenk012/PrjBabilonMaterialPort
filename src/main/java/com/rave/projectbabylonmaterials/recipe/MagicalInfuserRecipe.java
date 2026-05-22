@@ -79,8 +79,20 @@ public class MagicalInfuserRecipe implements Recipe<Container> {
         return topCount;
     }
 
+    public Ingredient getTopIngredient() {
+        return topIngredient;
+    }
+
     public int getBottomCount() {
         return bottomCount;
+    }
+
+    public Ingredient getBottomIngredient() {
+        return bottomIngredient;
+    }
+
+    public ItemStack getResult() {
+        return result.copy();
     }
 
     public int getCraftTime() {
