@@ -9,12 +9,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -42,6 +44,7 @@ public final class CombatStatsOverlay {
     private static final int HOTBAR_HEIGHT = 22;
     private static final int HOTBAR_GAP = 6;
     private static final int OFFHAND_SHIFT_X = 26;
+    private static final int ARES_OFFHAND_EXTRA_SHIFT_X = 4;
     private static final int BOTTOM_MARGIN = -14;
     private static final int PASSIVE_ICON_SIZE = 16;
     private static final int PASSIVE_HOTBAR_GAP = 8;
@@ -49,6 +52,10 @@ public final class CombatStatsOverlay {
     private static final float COOLDOWN_TEXT_SCALE = 0.7F;
     private static final int COOLDOWN_TEXT_GAP = 3;
     private static final int REBIRTH_COOLDOWN_TICKS = 12000;
+    private static final String ARES_HUD_MODID = "ares_hud";
+    private static boolean aresHudLookupInitialized;
+    private static Method aresGetHotbarTypeMethod;
+    private static Method aresIsOffhandEnabledMethod;
 
     public static final IGuiOverlay HUD = (gui, guiGraphics, partialTick, screenWidth, screenHeight) -> {
         Minecraft minecraft = Minecraft.getInstance();
@@ -74,8 +81,12 @@ public final class CombatStatsOverlay {
         int boxHeight = BOX_PADDING_Y * 2 + ROW_HEIGHT * rows.size();
         int hotbarLeft = (screenWidth / 2) - HOTBAR_HALF_WIDTH;
         int x = hotbarLeft - HOTBAR_GAP - boxWidth;
-        if (!minecraft.player.getOffhandItem().isEmpty()) {
+        Boolean aresHudOffhandVisible = getAresHudOffhandSlotVisible();
+        if (shouldShiftForOffhandSlot(minecraft.player, aresHudOffhandVisible)) {
             x -= OFFHAND_SHIFT_X;
+            if (Boolean.TRUE.equals(aresHudOffhandVisible)) {
+                x -= ARES_OFFHAND_EXTRA_SHIFT_X;
+            }
         }
         int y = screenHeight - HOTBAR_HEIGHT - BOTTOM_MARGIN - boxHeight;
 
@@ -96,6 +107,61 @@ public final class CombatStatsOverlay {
     private CombatStatsOverlay() {
     }
 
+    private static boolean shouldShiftForOffhandSlot(Player player, Boolean aresHudOffhandVisible) {
+        if (player.getMainArm() != HumanoidArm.RIGHT) {
+            return false;
+        }
+        if (aresHudOffhandVisible != null) {
+            return aresHudOffhandVisible;
+        }
+
+        return !player.getOffhandItem().isEmpty();
+    }
+
+    private static Boolean getAresHudOffhandSlotVisible() {
+        if (!ModList.get().isLoaded(ARES_HUD_MODID)) {
+            return null;
+        }
+
+        initializeAresHudHooks();
+        if (aresGetHotbarTypeMethod == null || aresIsOffhandEnabledMethod == null) {
+            return null;
+        }
+
+        try {
+            Object hotbarType = aresGetHotbarTypeMethod.invoke(null);
+            if (hotbarType == null) {
+                return null;
+            }
+            return (Boolean) aresIsOffhandEnabledMethod.invoke(null, hotbarType);
+        } catch (ReflectiveOperationException ignored) {
+            return null;
+        }
+    }
+
+    private static void initializeAresHudHooks() {
+        if (aresHudLookupInitialized) {
+            return;
+        }
+
+        synchronized (CombatStatsOverlay.class) {
+            if (aresHudLookupInitialized) {
+                return;
+            }
+
+            try {
+                Class<?> hudConfigClass = Class.forName("com.super_awesome_baby.ares_hud.client.config.HudConfig");
+                Class<?> hotbarTypeClass = Class.forName("com.super_awesome_baby.ares_hud.client.config.HudConfig$HotbarType");
+                aresGetHotbarTypeMethod = hudConfigClass.getMethod("getHotbarType");
+                aresIsOffhandEnabledMethod = hudConfigClass.getMethod("isOffhandEnabled", hotbarTypeClass);
+            } catch (ReflectiveOperationException ignored) {
+                aresGetHotbarTypeMethod = null;
+                aresIsOffhandEnabledMethod = null;
+            }
+
+            aresHudLookupInitialized = true;
+        }
+    }
     private static void renderRow(GuiGraphics guiGraphics, Font font, int x, int y, ResourceLocation iconTexture, String value) {
         guiGraphics.blit(iconTexture, x, y + 1, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
         guiGraphics.drawString(font, value, x + TEXT_OFFSET_X, y + 2, TEXT_COLOR, false);
@@ -194,3 +260,4 @@ public final class CombatStatsOverlay {
     private record Row(ResourceLocation icon, String value) {
     }
 }
+

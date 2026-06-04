@@ -20,10 +20,14 @@ public final class MagicArmorCalculationHelper {
     }
 
     public static float applyAdjustedMagicDamage(LivingEntity target, float damage) {
-        return applyAdjustedMagicDamage(target, damage, 1.0F);
+        return applyAdjustedMagicDamage(target, damage, 1.0F, 0.0F);
     }
 
     public static float applyAdjustedMagicDamage(LivingEntity target, float damage, float schoolResistMultiplier) {
+        return applyAdjustedMagicDamage(target, damage, schoolResistMultiplier, 0.0F);
+    }
+
+    public static float applyAdjustedMagicDamage(LivingEntity target, float damage, float schoolResistMultiplier, float magicArmorNegationPercent) {
         if (damage <= 0.0F) {
             return 0.0F;
         }
@@ -34,6 +38,12 @@ public final class MagicArmorCalculationHelper {
         }
 
         float spellResistValue = (float) target.getAttributeValue(spellResistAttribute);
-        return damage * applyAdjustedSpellResist(spellResistValue, schoolResistMultiplier);
+        float effectiveSpellResist = applyMagicArmorNegation(spellResistValue, magicArmorNegationPercent);
+        return damage * applyAdjustedSpellResist(effectiveSpellResist, schoolResistMultiplier);
+    }
+
+    public static float applyMagicArmorNegation(float spellResistValue, float magicArmorNegationPercent) {
+        float clampedNegation = Math.max(0.0F, Math.min(100.0F, magicArmorNegationPercent));
+        return Math.max(0.0F, spellResistValue * (1.0F - clampedNegation / 100.0F));
     }
 }
