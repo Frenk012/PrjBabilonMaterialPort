@@ -26,13 +26,13 @@ public abstract class EpicFightArmorCapabilityBuilderMixin {
     @Unique
     private boolean pbm$autoStunArmor;
 
-    @Inject(method = "item", at = @At("HEAD"), remap = false)
+    @Inject(method = "byItem", at = @At("HEAD"), remap = false, require = 0)
     private void pbm$captureAutoCalculatedFlags(Item item, CallbackInfoReturnable<Object> cir) {
         this.pbm$autoWeight = this.weight < 0.0D;
         this.pbm$autoStunArmor = this.stunArmor < 0.0D;
     }
 
-    @Inject(method = "item", at = @At("RETURN"), remap = false)
+    @Inject(method = "byItem", at = @At("RETURN"), remap = false, require = 0)
     private void pbm$halveEpicFightAutoArmorAttributes(Item item, CallbackInfoReturnable<Object> cir) {
         if (!(item instanceof ArmorItem)) {
             return;
