@@ -1,24 +1,31 @@
 package com.rave.projectbabylonmaterials.network.client;
 
+import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.client.overlay.DragonsteelCooldownClientState;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public record ClientboundDragonsteelCooldownPacket(int remainingTicks) implements CustomPacketPayload {
 
-public record ClientboundDragonsteelCooldownPacket(int remainingTicks) {
+    public static final Type<ClientboundDragonsteelCooldownPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "dragonsteel_cooldown"));
 
-    public static void encode(ClientboundDragonsteelCooldownPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeVarInt(packet.remainingTicks);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClientboundDragonsteelCooldownPacket> STREAM_CODEC =
+            StreamCodec.composite(
+                    ByteBufCodecs.VAR_INT, ClientboundDragonsteelCooldownPacket::remainingTicks,
+                    ClientboundDragonsteelCooldownPacket::new
+            );
+
+    @Override
+    public Type<ClientboundDragonsteelCooldownPacket> type() {
+        return TYPE;
     }
 
-    public static ClientboundDragonsteelCooldownPacket decode(FriendlyByteBuf buffer) {
-        return new ClientboundDragonsteelCooldownPacket(buffer.readVarInt());
-    }
-
-    public static void handle(ClientboundDragonsteelCooldownPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
-        context.enqueueWork(() -> DragonsteelCooldownClientState.setRemainingTicks(packet.remainingTicks));
-        context.setPacketHandled(true);
+    public static void handle(ClientboundDragonsteelCooldownPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> DragonsteelCooldownClientState.setRemainingTicks(packet.remainingTicks()));
     }
 }

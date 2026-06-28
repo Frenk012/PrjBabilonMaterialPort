@@ -3,38 +3,27 @@ package com.rave.projectbabylonmaterials.network;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.network.client.ClientboundCritEffectPacket;
 import com.rave.projectbabylonmaterials.network.client.ClientboundDragonsteelCooldownPacket;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class PBNetwork {
 
     private static final String PROTOCOL_VERSION = "1";
-    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "main"),
-            () -> PROTOCOL_VERSION,
-            PROTOCOL_VERSION::equals,
-            PROTOCOL_VERSION::equals
-    );
-
-    private static int packetId;
 
     private PBNetwork() {
     }
 
-    public static void register() {
-        CHANNEL.registerMessage(
-                packetId++,
-                ClientboundCritEffectPacket.class,
-                ClientboundCritEffectPacket::encode,
-                ClientboundCritEffectPacket::decode,
+    public static void register(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar(ProjectBabylonMaterials.MODID).versioned(PROTOCOL_VERSION);
+
+        registrar.playToClient(
+                ClientboundCritEffectPacket.TYPE,
+                ClientboundCritEffectPacket.STREAM_CODEC,
                 ClientboundCritEffectPacket::handle
         );
-        CHANNEL.registerMessage(
-                packetId++,
-                ClientboundDragonsteelCooldownPacket.class,
-                ClientboundDragonsteelCooldownPacket::encode,
-                ClientboundDragonsteelCooldownPacket::decode,
+        registrar.playToClient(
+                ClientboundDragonsteelCooldownPacket.TYPE,
+                ClientboundDragonsteelCooldownPacket.STREAM_CODEC,
                 ClientboundDragonsteelCooldownPacket::handle
         );
     }
