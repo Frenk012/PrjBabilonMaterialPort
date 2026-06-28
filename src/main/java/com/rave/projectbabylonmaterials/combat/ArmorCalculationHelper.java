@@ -22,7 +22,7 @@ public final class ArmorCalculationHelper {
         float effectiveArmor = armorValue * (1.0F - effectiveArmorNegation / 100.0F);
         float scaledArmor = Math.max(0.0F, effectiveArmor) / ARMOR_SCALE_FACTOR;
         float scaledToughness = Math.max(0.0F, armorToughness) / TOUGHNESS_SCALE_FACTOR;
-        return CombatRules.getDamageAfterAbsorb(damage, scaledArmor, scaledToughness);
+        return CombatRules.getDamageAfterAbsorb(entity, damage, source, scaledArmor, scaledToughness);
     }
     public static boolean shouldBypassPhysicalArmor(DamageSource source) {
         return isIronsSpellbooksDamage(source);

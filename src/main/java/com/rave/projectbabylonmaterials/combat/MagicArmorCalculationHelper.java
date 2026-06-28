@@ -1,9 +1,12 @@
 package com.rave.projectbabylonmaterials.combat;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraftforge.registries.ForgeRegistries;
+
+import java.util.Optional;
 
 public final class MagicArmorCalculationHelper {
     private static final float MAGIC_ARMOR_FULL_AT = 40.0F;
@@ -32,12 +35,12 @@ public final class MagicArmorCalculationHelper {
             return 0.0F;
         }
 
-        Attribute spellResistAttribute = ForgeRegistries.ATTRIBUTES.getValue(SPELL_RESIST_ATTRIBUTE_ID);
-        if (spellResistAttribute == null) {
+        Optional<Holder.Reference<Attribute>> spellResistAttribute = BuiltInRegistries.ATTRIBUTE.getHolder(SPELL_RESIST_ATTRIBUTE_ID);
+        if (spellResistAttribute.isEmpty()) {
             return damage;
         }
 
-        float spellResistValue = (float) target.getAttributeValue(spellResistAttribute);
+        float spellResistValue = (float) target.getAttributeValue(spellResistAttribute.get());
         float effectiveSpellResist = applyMagicArmorNegation(spellResistValue, magicArmorNegationPercent);
         return damage * applyAdjustedSpellResist(effectiveSpellResist, schoolResistMultiplier);
     }

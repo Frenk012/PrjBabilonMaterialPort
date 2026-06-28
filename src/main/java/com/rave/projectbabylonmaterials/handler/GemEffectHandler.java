@@ -6,6 +6,8 @@ import com.rave.projectbabylonmaterials.gem.GemType;
 import com.rave.projectbabylonmaterials.init.PBAttributes;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityTier;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -19,78 +21,81 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-@Mod.EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class GemEffectHandler {
     private static final String ARROW_GEM_PROCESSED_TAG = "project_babylon_materials.arrow_gems_processed";
     private static final String ARROW_DAMAGE_MULTIPLIER_TAG = "project_babylon_materials.arrow_damage_multiplier";
     private static final String ARROW_VELOCITY_MULTIPLIER_TAG = "project_babylon_materials.arrow_velocity_multiplier";
 
-    private static final UUID RUBY_ATTACK_DAMAGE_ID = UUID.fromString("0d7d7771-311e-4d79-aeea-4a0ddcc5e0f1");
-    private static final UUID TOPAZ_ATTACK_SPEED_ID = UUID.fromString("4963b3dd-fac6-4782-95cf-a2f9e176fdbf");
-    private static final UUID WHITE_CRIT_CHANCE_ID = UUID.fromString("7e6f7c68-5042-4514-a20f-0872c72ff65d");
-    private static final UUID BLACK_CRIT_DAMAGE_ID = UUID.fromString("ee4d4f31-f6e3-49f3-abbb-a3c3f3a3cc31");
-    private static final UUID HEALTH_MAX_HEALTH_ID = UUID.fromString("c5b2c99f-7e06-48de-9e58-3306ddf153f2");
-    private static final UUID AQUAMARINE_MOVE_SPEED_ID = UUID.fromString("654283ca-12eb-45ec-b775-4544866b95d5");
-    private static final UUID GARNET_DRAW_SPEED_ID = UUID.fromString("579f60ad-d5f6-48a6-90f8-5a4b81a79d45");
-    private static final UUID SAPPHIRE_ARMOR_NEGATION_ID = UUID.fromString("f7d9cb0a-9170-4c16-81ef-c7fd8a42c65b");
-    private static final UUID CHRIZOLITE_IMPACT_ID = UUID.fromString("feec4c13-5d57-40fe-bd76-ae3f54f7f1b7");
-    private static final UUID EMERALD_STAMINA_ID = UUID.fromString("ef1e923f-b89a-4c05-a488-7d7bd67d19dc");
-    private static final UUID MANA_MAX_MANA_ID = UUID.fromString("72d89096-2b64-4749-8d98-6dceab5fe457");
-    private static final UUID DIAMOND_CAST_TIME_ID = UUID.fromString("87fc2e45-e45e-42ff-a0eb-b8f9fbc8c913");
-    private static final UUID AMETHYST_COOLDOWN_ID = UUID.fromString("28e2b0d0-1a95-48c6-b363-f6f14252f430");
-    private static final UUID END_SPELL_POWER_ID = UUID.fromString("60166508-d10a-4d23-822d-3781d0d5932b");
-    private static final UUID BLOOD_SPELL_POWER_ID = UUID.fromString("9e5d2db7-b54e-4e2a-b1cb-5856281f652e");
-    private static final UUID NORTHERN_SPELL_POWER_ID = UUID.fromString("c6b7801f-0909-4d9c-bb2c-08681741434f");
-    private static final UUID PYRITE_SPELL_POWER_ID = UUID.fromString("8401efdb-a387-4af8-9b9a-770d62f242ff");
-    private static final UUID MOON_PEARL_SPELL_POWER_ID = UUID.fromString("7b3443e4-4069-4523-879d-3544fdb55934");
-    private static final UUID DRAGON_SPELL_POWER_ID = UUID.fromString("1144c347-e0ad-4fbe-af5b-79f811f5d3cb");
-    private static final UUID NATURE_SPELL_POWER_ID = UUID.fromString("b660103f-2d52-4cb0-8afc-27626060b6a7");
+    private static final ResourceLocation RUBY_ATTACK_DAMAGE_ID = id("gem_ruby");
+    private static final ResourceLocation TOPAZ_ATTACK_SPEED_ID = id("gem_topaz");
+    private static final ResourceLocation WHITE_CRIT_CHANCE_ID = id("gem_white");
+    private static final ResourceLocation BLACK_CRIT_DAMAGE_ID = id("gem_black");
+    private static final ResourceLocation HEALTH_MAX_HEALTH_ID = id("gem_health");
+    private static final ResourceLocation AQUAMARINE_MOVE_SPEED_ID = id("gem_aquamarine");
+    private static final ResourceLocation GARNET_DRAW_SPEED_ID = id("gem_garnet");
+    private static final ResourceLocation SAPPHIRE_ARMOR_NEGATION_ID = id("gem_sapphire");
+    private static final ResourceLocation CHRIZOLITE_IMPACT_ID = id("gem_chrizolite");
+    private static final ResourceLocation EMERALD_STAMINA_ID = id("gem_emerald");
+    private static final ResourceLocation MANA_MAX_MANA_ID = id("gem_mana");
+    private static final ResourceLocation DIAMOND_CAST_TIME_ID = id("gem_diamond");
+    private static final ResourceLocation AMETHYST_COOLDOWN_ID = id("gem_amethyst");
+    private static final ResourceLocation END_SPELL_POWER_ID = id("gem_end");
+    private static final ResourceLocation BLOOD_SPELL_POWER_ID = id("gem_blood");
+    private static final ResourceLocation NORTHERN_SPELL_POWER_ID = id("gem_northern");
+    private static final ResourceLocation PYRITE_SPELL_POWER_ID = id("gem_pyrite");
+    private static final ResourceLocation MOON_PEARL_SPELL_POWER_ID = id("gem_moon_pearl");
+    private static final ResourceLocation DRAGON_SPELL_POWER_ID = id("gem_dragon");
+    private static final ResourceLocation NATURE_SPELL_POWER_ID = id("gem_nature");
 
-    private static final ResourceLocation EPICFIGHT_ARMOR_NEGATION = new ResourceLocation("epicfight", "armor_negation");
-    private static final ResourceLocation EPICFIGHT_IMPACT = new ResourceLocation("epicfight", "impact");
-    private static final ResourceLocation EPICFIGHT_STAMINA = new ResourceLocation("epicfight", "staminar");
-    private static final ResourceLocation ISB_MAX_MANA = new ResourceLocation("irons_spellbooks", "max_mana");
-    private static final ResourceLocation ISB_CAST_TIME_REDUCTION = new ResourceLocation("irons_spellbooks", "cast_time_reduction");
-    private static final ResourceLocation ISB_COOLDOWN_REDUCTION = new ResourceLocation("irons_spellbooks", "cooldown_reduction");
-    private static final ResourceLocation ISB_ENDER_SPELL_POWER = new ResourceLocation("irons_spellbooks", "ender_spell_power");
-    private static final ResourceLocation ISB_BLOOD_SPELL_POWER = new ResourceLocation("irons_spellbooks", "blood_spell_power");
-    private static final ResourceLocation ISB_ICE_SPELL_POWER = new ResourceLocation("irons_spellbooks", "ice_spell_power");
-    private static final ResourceLocation ISB_FIRE_SPELL_POWER = new ResourceLocation("irons_spellbooks", "fire_spell_power");
-    private static final ResourceLocation ISB_HOLY_SPELL_POWER = new ResourceLocation("irons_spellbooks", "holy_spell_power");
-    private static final ResourceLocation ISB_LIGHTNING_SPELL_POWER = new ResourceLocation("irons_spellbooks", "lightning_spell_power");
-    private static final ResourceLocation ISB_NATURE_SPELL_POWER = new ResourceLocation("irons_spellbooks", "nature_spell_power");
+    // TODO(port): third-party attribute IDs (epicfight / irons_spellbooks) for 1.21.1 builds.
+    // Resolved leniently via the registry; absent attributes are simply skipped (no-op).
+    private static final ResourceLocation EPICFIGHT_ARMOR_NEGATION = ResourceLocation.fromNamespaceAndPath("epicfight", "armor_negation");
+    private static final ResourceLocation EPICFIGHT_IMPACT = ResourceLocation.fromNamespaceAndPath("epicfight", "impact");
+    private static final ResourceLocation EPICFIGHT_STAMINA = ResourceLocation.fromNamespaceAndPath("epicfight", "staminar");
+    private static final ResourceLocation ISB_MAX_MANA = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "max_mana");
+    private static final ResourceLocation ISB_CAST_TIME_REDUCTION = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "cast_time_reduction");
+    private static final ResourceLocation ISB_COOLDOWN_REDUCTION = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "cooldown_reduction");
+    private static final ResourceLocation ISB_ENDER_SPELL_POWER = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "ender_spell_power");
+    private static final ResourceLocation ISB_BLOOD_SPELL_POWER = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blood_spell_power");
+    private static final ResourceLocation ISB_ICE_SPELL_POWER = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "ice_spell_power");
+    private static final ResourceLocation ISB_FIRE_SPELL_POWER = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "fire_spell_power");
+    private static final ResourceLocation ISB_HOLY_SPELL_POWER = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "holy_spell_power");
+    private static final ResourceLocation ISB_LIGHTNING_SPELL_POWER = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "lightning_spell_power");
+    private static final ResourceLocation ISB_NATURE_SPELL_POWER = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "nature_spell_power");
 
     private GemEffectHandler() {
     }
 
+    private static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, path);
+    }
+
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
+        if (player.level().isClientSide) {
             return;
         }
 
-        if (event.player.tickCount % 10 != 0) {
+        if (player.tickCount % 10 != 0) {
             return;
         }
 
-        applySocketedGemBonuses(event.player);
+        applySocketedGemBonuses(player);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingDamage(LivingDamageEvent event) {
-        if (event.isCanceled() || event.getAmount() <= 0.0F || event.getEntity().level().isClientSide()) {
+    public static void onLivingDamage(LivingDamageEvent.Pre event) {
+        if (event.getNewDamage() <= 0.0F || event.getEntity().level().isClientSide()) {
             return;
         }
 
@@ -100,7 +105,7 @@ public final class GemEffectHandler {
 
         double damageMultiplier = arrow.getPersistentData().getDouble(ARROW_DAMAGE_MULTIPLIER_TAG);
         if (damageMultiplier > 0.0D) {
-            event.setAmount((float) (event.getAmount() * (1.0D + damageMultiplier)));
+            event.setNewDamage((float) (event.getNewDamage() * (1.0D + damageMultiplier)));
         }
     }
 
@@ -178,28 +183,28 @@ public final class GemEffectHandler {
         double previousMaxHealth = player.getMaxHealth();
         float previousHealth = player.getHealth();
 
-        applyModifier(player, Attributes.ATTACK_DAMAGE, RUBY_ATTACK_DAMAGE_ID, "project_babylon_materials.gem_ruby", bonuses.attackDamageMultiplier, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        applyModifier(player, Attributes.ATTACK_SPEED, TOPAZ_ATTACK_SPEED_ID, "project_babylon_materials.gem_topaz", bonuses.attackSpeedMultiplier, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        applyModifier(player, PBAttributes.CRIT_CHANCE.get(), WHITE_CRIT_CHANCE_ID, "project_babylon_materials.gem_white", bonuses.critChanceBonus, AttributeModifier.Operation.ADDITION);
-        applyModifier(player, PBAttributes.CRIT_DAMAGE.get(), BLACK_CRIT_DAMAGE_ID, "project_babylon_materials.gem_black", bonuses.critDamageBonus, AttributeModifier.Operation.ADDITION);
-        applyModifier(player, Attributes.MAX_HEALTH, HEALTH_MAX_HEALTH_ID, "project_babylon_materials.gem_health", bonuses.maxHealthMultiplier, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        applyModifier(player, Attributes.MOVEMENT_SPEED, AQUAMARINE_MOVE_SPEED_ID, "project_babylon_materials.gem_aquamarine", bonuses.movementSpeedMultiplier, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        applyModifier(player, PBAttributes.RANGED_DRAW_SPEED.get(), GARNET_DRAW_SPEED_ID, "project_babylon_materials.gem_garnet", bonuses.rangedDrawSpeedBonus, AttributeModifier.Operation.ADDITION);
+        applyModifier(player, Attributes.ATTACK_DAMAGE, RUBY_ATTACK_DAMAGE_ID, bonuses.attackDamageMultiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        applyModifier(player, Attributes.ATTACK_SPEED, TOPAZ_ATTACK_SPEED_ID, bonuses.attackSpeedMultiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        applyModifier(player, PBAttributes.CRIT_CHANCE, WHITE_CRIT_CHANCE_ID, bonuses.critChanceBonus, AttributeModifier.Operation.ADD_VALUE);
+        applyModifier(player, PBAttributes.CRIT_DAMAGE, BLACK_CRIT_DAMAGE_ID, bonuses.critDamageBonus, AttributeModifier.Operation.ADD_VALUE);
+        applyModifier(player, Attributes.MAX_HEALTH, HEALTH_MAX_HEALTH_ID, bonuses.maxHealthMultiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        applyModifier(player, Attributes.MOVEMENT_SPEED, AQUAMARINE_MOVE_SPEED_ID, bonuses.movementSpeedMultiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        applyModifier(player, PBAttributes.RANGED_DRAW_SPEED, GARNET_DRAW_SPEED_ID, bonuses.rangedDrawSpeedBonus, AttributeModifier.Operation.ADD_VALUE);
 
-        applyExternalModifier(player, EPICFIGHT_ARMOR_NEGATION, SAPPHIRE_ARMOR_NEGATION_ID, "project_babylon_materials.gem_sapphire", bonuses.armorNegationBonus, AttributeModifier.Operation.ADDITION);
-        applyExternalModifier(player, EPICFIGHT_IMPACT, CHRIZOLITE_IMPACT_ID, "project_babylon_materials.gem_chrizolite", bonuses.impactBonus, AttributeModifier.Operation.ADDITION);
-        applyExternalModifier(player, EPICFIGHT_STAMINA, EMERALD_STAMINA_ID, "project_babylon_materials.gem_emerald", bonuses.staminaMultiplier, AttributeModifier.Operation.MULTIPLY_TOTAL);
+        applyExternalModifier(player, EPICFIGHT_ARMOR_NEGATION, SAPPHIRE_ARMOR_NEGATION_ID, bonuses.armorNegationBonus, AttributeModifier.Operation.ADD_VALUE);
+        applyExternalModifier(player, EPICFIGHT_IMPACT, CHRIZOLITE_IMPACT_ID, bonuses.impactBonus, AttributeModifier.Operation.ADD_VALUE);
+        applyExternalModifier(player, EPICFIGHT_STAMINA, EMERALD_STAMINA_ID, bonuses.staminaMultiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
-        applyExternalModifier(player, ISB_MAX_MANA, MANA_MAX_MANA_ID, "project_babylon_materials.gem_mana", bonuses.maxManaMultiplier, AttributeModifier.Operation.MULTIPLY_TOTAL);
-        applyExternalModifier(player, ISB_CAST_TIME_REDUCTION, DIAMOND_CAST_TIME_ID, "project_babylon_materials.gem_diamond", bonuses.castTimeReductionBonus, AttributeModifier.Operation.MULTIPLY_BASE);
-        applyExternalModifier(player, ISB_COOLDOWN_REDUCTION, AMETHYST_COOLDOWN_ID, "project_babylon_materials.gem_amethyst", bonuses.cooldownReductionBonus, AttributeModifier.Operation.MULTIPLY_BASE);
-        applyExternalModifier(player, ISB_ENDER_SPELL_POWER, END_SPELL_POWER_ID, "project_babylon_materials.gem_end", bonuses.enderSpellPowerBonus, AttributeModifier.Operation.MULTIPLY_BASE);
-        applyExternalModifier(player, ISB_BLOOD_SPELL_POWER, BLOOD_SPELL_POWER_ID, "project_babylon_materials.gem_blood", bonuses.bloodSpellPowerBonus, AttributeModifier.Operation.MULTIPLY_BASE);
-        applyExternalModifier(player, ISB_ICE_SPELL_POWER, NORTHERN_SPELL_POWER_ID, "project_babylon_materials.gem_northern", bonuses.iceSpellPowerBonus, AttributeModifier.Operation.MULTIPLY_BASE);
-        applyExternalModifier(player, ISB_FIRE_SPELL_POWER, PYRITE_SPELL_POWER_ID, "project_babylon_materials.gem_pyrite", bonuses.fireSpellPowerBonus, AttributeModifier.Operation.MULTIPLY_BASE);
-        applyExternalModifier(player, ISB_HOLY_SPELL_POWER, MOON_PEARL_SPELL_POWER_ID, "project_babylon_materials.gem_moon_pearl", bonuses.holySpellPowerBonus, AttributeModifier.Operation.MULTIPLY_BASE);
-        applyExternalModifier(player, ISB_LIGHTNING_SPELL_POWER, DRAGON_SPELL_POWER_ID, "project_babylon_materials.gem_dragon", bonuses.lightningSpellPowerBonus, AttributeModifier.Operation.MULTIPLY_BASE);
-        applyExternalModifier(player, ISB_NATURE_SPELL_POWER, NATURE_SPELL_POWER_ID, "project_babylon_materials.gem_nature", bonuses.natureSpellPowerBonus, AttributeModifier.Operation.MULTIPLY_BASE);
+        applyExternalModifier(player, ISB_MAX_MANA, MANA_MAX_MANA_ID, bonuses.maxManaMultiplier, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        applyExternalModifier(player, ISB_CAST_TIME_REDUCTION, DIAMOND_CAST_TIME_ID, bonuses.castTimeReductionBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        applyExternalModifier(player, ISB_COOLDOWN_REDUCTION, AMETHYST_COOLDOWN_ID, bonuses.cooldownReductionBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        applyExternalModifier(player, ISB_ENDER_SPELL_POWER, END_SPELL_POWER_ID, bonuses.enderSpellPowerBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        applyExternalModifier(player, ISB_BLOOD_SPELL_POWER, BLOOD_SPELL_POWER_ID, bonuses.bloodSpellPowerBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        applyExternalModifier(player, ISB_ICE_SPELL_POWER, NORTHERN_SPELL_POWER_ID, bonuses.iceSpellPowerBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        applyExternalModifier(player, ISB_FIRE_SPELL_POWER, PYRITE_SPELL_POWER_ID, bonuses.fireSpellPowerBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        applyExternalModifier(player, ISB_HOLY_SPELL_POWER, MOON_PEARL_SPELL_POWER_ID, bonuses.holySpellPowerBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        applyExternalModifier(player, ISB_LIGHTNING_SPELL_POWER, DRAGON_SPELL_POWER_ID, bonuses.lightningSpellPowerBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        applyExternalModifier(player, ISB_NATURE_SPELL_POWER, NATURE_SPELL_POWER_ID, bonuses.natureSpellPowerBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 
         double newMaxHealth = player.getMaxHealth();
         if (player instanceof ServerPlayer && newMaxHealth < previousHealth) {
@@ -253,29 +258,28 @@ public final class GemEffectHandler {
         }
     }
 
-    private static void applyModifier(LivingEntity entity, Attribute attribute, UUID modifierId, String modifierName, double amount, AttributeModifier.Operation operation) {
+    private static void applyModifier(LivingEntity entity, Holder<Attribute> attribute, ResourceLocation modifierId, double amount, AttributeModifier.Operation operation) {
         AttributeInstance attributeInstance = entity.getAttribute(attribute);
         if (attributeInstance == null) {
             return;
         }
 
-        AttributeModifier existing = attributeInstance.getModifier(modifierId);
-        if (existing != null) {
+        if (attributeInstance.getModifier(modifierId) != null) {
             attributeInstance.removeModifier(modifierId);
         }
 
         if (Math.abs(amount) > 0.0001D) {
-            attributeInstance.addTransientModifier(new AttributeModifier(modifierId, modifierName, amount, operation));
+            attributeInstance.addTransientModifier(new AttributeModifier(modifierId, amount, operation));
         }
     }
 
-    private static void applyExternalModifier(LivingEntity entity, ResourceLocation attributeId, UUID modifierId, String modifierName, double amount, AttributeModifier.Operation operation) {
-        Attribute attribute = ForgeRegistries.ATTRIBUTES.getValue(attributeId);
+    private static void applyExternalModifier(LivingEntity entity, ResourceLocation attributeId, ResourceLocation modifierId, double amount, AttributeModifier.Operation operation) {
+        Attribute attribute = BuiltInRegistries.ATTRIBUTE.get(attributeId);
         if (attribute == null) {
             return;
         }
 
-        applyModifier(entity, attribute, modifierId, modifierName, amount, operation);
+        applyModifier(entity, BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute), modifierId, amount, operation);
     }
 
     private static ItemStack findRangedWeaponInHands(LivingEntity owner) {

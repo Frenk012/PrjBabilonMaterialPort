@@ -2,13 +2,15 @@ package com.rave.projectbabylonmaterials.handler;
 
 import com.rave.projectbabylonmaterials.enchantment.EnchantmentSlotHelper;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 public final class ItemRarityHandler {
     private ItemRarityHandler() {
@@ -21,26 +23,25 @@ public final class ItemRarityHandler {
         }
 
         ItemStack crafted = event.getCrafting();
-        if (ItemRarityHelper.ensureRarity(crafted, event.getEntity().getRandom())) {
-            crafted.setTag(crafted.getTag());
-        }
+        ItemRarityHelper.ensureRarity(crafted, event.getEntity().getRandom());
         EnchantmentSlotHelper.trimToSlotLimit(crafted);
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide || event.player.tickCount % 20 != 0) {
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        Player player = event.getEntity();
+        if (player.level().isClientSide || player.tickCount % 20 != 0) {
             return;
         }
 
-        Inventory inventory = event.player.getInventory();
-        sanitizeStacks(inventory.items, event.player.getRandom());
-        sanitizeStacks(inventory.armor, event.player.getRandom());
-        sanitizeStacks(inventory.offhand, event.player.getRandom());
+        Inventory inventory = player.getInventory();
+        sanitizeStacks(inventory.items, player.getRandom());
+        sanitizeStacks(inventory.armor, player.getRandom());
+        sanitizeStacks(inventory.offhand, player.getRandom());
 
-        ItemStack carried = event.player.containerMenu.getCarried();
-        if (ItemRarityHelper.ensureRarity(carried, event.player.getRandom())) {
-            event.player.containerMenu.setCarried(carried);
+        ItemStack carried = player.containerMenu.getCarried();
+        if (ItemRarityHelper.ensureRarity(carried, player.getRandom())) {
+            player.containerMenu.setCarried(carried);
         }
         EnchantmentSlotHelper.trimToSlotLimit(carried);
     }
@@ -59,7 +60,7 @@ public final class ItemRarityHandler {
         }
     }
 
-    private static void sanitizeStacks(Iterable<ItemStack> stacks, net.minecraft.util.RandomSource random) {
+    private static void sanitizeStacks(Iterable<ItemStack> stacks, RandomSource random) {
         for (ItemStack stack : stacks) {
             ItemRarityHelper.ensureRarity(stack, random);
             EnchantmentSlotHelper.trimToSlotLimit(stack);

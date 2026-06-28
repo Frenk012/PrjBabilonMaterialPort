@@ -2,6 +2,7 @@ package com.rave.projectbabylonmaterials.handler;
 
 import com.rave.projectbabylonmaterials.combat.EnchantmentRebalanceHelper;
 import com.rave.projectbabylonmaterials.mixin.AbstractArrowAccessor;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -9,13 +10,12 @@ import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.ArrowLooseEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.ArrowLooseEvent;
 
 public final class VanillaEnchantmentRebalanceHandler {
     private static final String LAST_BOW_POWER_TAG = "project_babylon_materials.last_bow_power";
@@ -40,15 +40,15 @@ public final class VanillaEnchantmentRebalanceHandler {
 
         Player player = event.getEntity();
         CompoundTag data = player.getPersistentData();
-        data.putInt(LAST_BOW_POWER_TAG, EnchantmentHelper.getItemEnchantmentLevel(Enchantments.POWER_ARROWS, bow));
-        data.putInt(LAST_BOW_FLAME_TAG, EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FLAMING_ARROWS, bow));
-        data.putInt(LAST_BOW_INFINITY_TAG, EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, bow));
+        data.putInt(LAST_BOW_POWER_TAG, EnchantmentRebalanceHelper.levelOf(bow, Enchantments.POWER));
+        data.putInt(LAST_BOW_FLAME_TAG, EnchantmentRebalanceHelper.levelOf(bow, Enchantments.FLAME));
+        data.putInt(LAST_BOW_INFINITY_TAG, EnchantmentRebalanceHelper.levelOf(bow, Enchantments.INFINITY));
         data.putLong(LAST_BOW_TICK_TAG, event.getLevel().getGameTime());
         event.setCharge(GemEffectHandler.adjustBowCharge(bow, event.getCharge()));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingHurt(LivingIncomingDamageEvent event) {
         if (event.isCanceled() || event.getAmount() <= 0.0F || event.getEntity().level().isClientSide) {
             return;
         }
@@ -86,7 +86,7 @@ public final class VanillaEnchantmentRebalanceHandler {
         data.putBoolean(ARROW_PROCESSED_TAG, true);
     }
 
-    private static void applyPhysicalProtection(LivingHurtEvent event) {
+    private static void applyPhysicalProtection(LivingIncomingDamageEvent event) {
         float reduction = EnchantmentRebalanceHelper.getPhysicalProtectionReduction(event.getEntity(), event.getSource());
         if (reduction <= 0.0F) {
             return;
@@ -95,7 +95,7 @@ public final class VanillaEnchantmentRebalanceHandler {
         event.setAmount(event.getAmount() * Math.max(0.0F, 1.0F - reduction));
     }
 
-    private static void applyMagicResistance(LivingHurtEvent event) {
+    private static void applyMagicResistance(LivingIncomingDamageEvent event) {
         float reduction = EnchantmentRebalanceHelper.getMagicResistanceReduction(event.getEntity(), event.getSource());
         if (reduction <= 0.0F) {
             return;
@@ -104,7 +104,7 @@ public final class VanillaEnchantmentRebalanceHandler {
         event.setAmount(event.getAmount() * Math.max(0.0F, 1.0F - reduction));
     }
 
-    private static void applyMeleeDamageEnchantments(LivingHurtEvent event) {
+    private static void applyMeleeDamageEnchantments(LivingIncomingDamageEvent event) {
         if (!(event.getSource().getEntity() instanceof LivingEntity attacker)) {
             return;
         }
@@ -122,7 +122,7 @@ public final class VanillaEnchantmentRebalanceHandler {
         event.setAmount(event.getAmount() * (1.0F + multiplier));
     }
 
-    private static void applyFireAspect(LivingHurtEvent event) {
+    private static void applyFireAspect(LivingIncomingDamageEvent event) {
         if (!(event.getSource().getEntity() instanceof LivingEntity attacker)) {
             return;
         }
@@ -139,7 +139,7 @@ public final class VanillaEnchantmentRebalanceHandler {
         }
 
         if (attacker.getRandom().nextFloat() < chance) {
-            event.getEntity().setSecondsOnFire(durationSeconds);
+            event.getEntity().igniteForSeconds(durationSeconds);
         }
     }
 
@@ -162,7 +162,7 @@ public final class VanillaEnchantmentRebalanceHandler {
 
         arrow.clearFire();
         if (arrow.level().random.nextFloat() < EnchantmentRebalanceHelper.FLAME_CHANCE) {
-            arrow.setSecondsOnFire(100);
+            arrow.igniteForSeconds(100);
         }
     }
 
@@ -199,9 +199,9 @@ public final class VanillaEnchantmentRebalanceHandler {
         shrinkMatchingStack(player.getInventory().items, ammoTemplate);
     }
 
-    private static boolean shrinkMatchingStack(net.minecraft.core.NonNullList<ItemStack> stacks, ItemStack ammoTemplate) {
+    private static boolean shrinkMatchingStack(NonNullList<ItemStack> stacks, ItemStack ammoTemplate) {
         for (ItemStack stack : stacks) {
-            if (ItemStack.isSameItemSameTags(stack, ammoTemplate) && !stack.isEmpty()) {
+            if (ItemStack.isSameItemSameComponents(stack, ammoTemplate) && !stack.isEmpty()) {
                 stack.shrink(1);
                 return true;
             }
@@ -238,9 +238,9 @@ public final class VanillaEnchantmentRebalanceHandler {
         }
 
         return new BowEnchantSnapshot(
-                EnchantmentHelper.getItemEnchantmentLevel(Enchantments.POWER_ARROWS, bow),
-                EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FLAMING_ARROWS, bow),
-                owner instanceof Player ? EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, bow) : 0
+                EnchantmentRebalanceHelper.levelOf(bow, Enchantments.POWER),
+                EnchantmentRebalanceHelper.levelOf(bow, Enchantments.FLAME),
+                owner instanceof Player ? EnchantmentRebalanceHelper.levelOf(bow, Enchantments.INFINITY) : 0
         );
     }
 

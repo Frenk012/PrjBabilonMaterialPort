@@ -1,21 +1,18 @@
 package com.rave.projectbabylonmaterials.handler;
 
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
-import java.util.UUID;
-
-@Mod.EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class LivingEntityHealthHandler {
-    private static final UUID UNIVERSAL_HEALTH_MODIFIER_ID = UUID.fromString("587d9b2d-df04-4a34-b1e7-37b923648ca3");
-    private static final String UNIVERSAL_HEALTH_MODIFIER_NAME = "project_babylon_materials.universal_living_health";
+    private static final ResourceLocation UNIVERSAL_HEALTH_MODIFIER_ID =
+            ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "universal_living_health");
     private static final double UNIVERSAL_HEALTH_BONUS = 10.0D;
 
     private LivingEntityHealthHandler() {
@@ -38,16 +35,14 @@ public final class LivingEntityHealthHandler {
 
         double previousMaxHealth = entity.getMaxHealth();
         float previousHealth = entity.getHealth();
-        AttributeModifier existing = maxHealth.getModifier(UNIVERSAL_HEALTH_MODIFIER_ID);
-        if (existing != null) {
+        if (maxHealth.getModifier(UNIVERSAL_HEALTH_MODIFIER_ID) != null) {
             maxHealth.removeModifier(UNIVERSAL_HEALTH_MODIFIER_ID);
         }
 
         maxHealth.addTransientModifier(new AttributeModifier(
                 UNIVERSAL_HEALTH_MODIFIER_ID,
-                UNIVERSAL_HEALTH_MODIFIER_NAME,
                 UNIVERSAL_HEALTH_BONUS,
-                AttributeModifier.Operation.ADDITION
+                AttributeModifier.Operation.ADD_VALUE
         ));
 
         double newMaxHealth = entity.getMaxHealth();
