@@ -1,5 +1,6 @@
 package com.rave.projectbabylonmaterials.gem;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.AxeItem;
@@ -13,7 +14,6 @@ import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TridentItem;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -73,15 +73,15 @@ public enum GemApplication {
     }
 
     public static boolean isMagicWeapon(Item item) {
-        ResourceLocation key = ForgeRegistries.ITEMS.getKey(item);
+        ResourceLocation key = BuiltInRegistries.ITEM.getKey(item);
         return key != null && "irons_spellbooks".equals(key.getNamespace()) && key.getPath().contains("staff");
     }
 
     private static ItemStack findMagicPreviewItem() {
-        for (ResourceLocation key : ForgeRegistries.ITEMS.getKeys()) {
+        for (ResourceLocation key : BuiltInRegistries.ITEM.keySet()) {
             if ("irons_spellbooks".equals(key.getNamespace()) && key.getPath().contains("staff")) {
-                Item item = ForgeRegistries.ITEMS.getValue(key);
-                if (item != null && item != Items.AIR) {
+                Item item = BuiltInRegistries.ITEM.get(key);
+                if (item != Items.AIR) {
                     return new ItemStack(item);
                 }
             }

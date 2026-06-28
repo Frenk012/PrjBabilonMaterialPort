@@ -1,10 +1,10 @@
 package com.rave.projectbabylonmaterials.gem;
 
+import com.rave.projectbabylonmaterials.init.PBMDataComponents;
 import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.item.gem.GemItem;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityTier;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -12,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Optional;
 
 public final class GemUpgradeHelper {
-    public static final String GEM_UPGRADE_ATTEMPTS_TAG = "PBGemUpgradeAttempts";
     public static final int DEFAULT_UPGRADE_ATTEMPTS = 3;
 
     private GemUpgradeHelper() {
@@ -27,13 +26,12 @@ public final class GemUpgradeHelper {
             return false;
         }
 
-        CompoundTag tag = stack.getOrCreateTag();
-        if (tag.contains(GEM_UPGRADE_ATTEMPTS_TAG)) {
+        if (stack.has(PBMDataComponents.GEM_UPGRADE_ATTEMPTS.get())) {
             return false;
         }
 
         ItemRarityTier rarity = ItemRarityHelper.getRarity(stack).orElse(ItemRarityTier.COMMON);
-        tag.putInt(GEM_UPGRADE_ATTEMPTS_TAG, rarity == ItemRarityTier.LEGENDARY ? 0 : DEFAULT_UPGRADE_ATTEMPTS);
+        stack.set(PBMDataComponents.GEM_UPGRADE_ATTEMPTS.get(), rarity == ItemRarityTier.LEGENDARY ? 0 : DEFAULT_UPGRADE_ATTEMPTS);
         return true;
     }
 
@@ -42,12 +40,12 @@ public final class GemUpgradeHelper {
             return 0;
         }
 
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(GEM_UPGRADE_ATTEMPTS_TAG)) {
+        Integer attempts = stack.get(PBMDataComponents.GEM_UPGRADE_ATTEMPTS.get());
+        if (attempts == null) {
             return ItemRarityHelper.getRarity(stack).orElse(ItemRarityTier.COMMON) == ItemRarityTier.LEGENDARY ? 0 : DEFAULT_UPGRADE_ATTEMPTS;
         }
 
-        return Math.max(0, tag.getInt(GEM_UPGRADE_ATTEMPTS_TAG));
+        return Math.max(0, attempts);
     }
 
     public static void consumeFailedAttempt(ItemStack stack) {
@@ -55,7 +53,7 @@ public final class GemUpgradeHelper {
             return;
         }
 
-        stack.getOrCreateTag().putInt(GEM_UPGRADE_ATTEMPTS_TAG, Math.max(0, getRemainingAttempts(stack) - 1));
+        stack.set(PBMDataComponents.GEM_UPGRADE_ATTEMPTS.get(), Math.max(0, getRemainingAttempts(stack) - 1));
     }
 
     public static boolean canUpgrade(ItemStack stack) {
@@ -100,7 +98,7 @@ public final class GemUpgradeHelper {
         result.setCount(1);
         int remainingAttempts = getRemainingAttempts(sourceGem);
         ItemRarityHelper.applyRarity(result, nextRarity, RandomSource.create());
-        result.getOrCreateTag().putInt(GEM_UPGRADE_ATTEMPTS_TAG, nextRarity == ItemRarityTier.LEGENDARY ? 0 : remainingAttempts);
+        result.set(PBMDataComponents.GEM_UPGRADE_ATTEMPTS.get(), nextRarity == ItemRarityTier.LEGENDARY ? 0 : remainingAttempts);
         return result;
     }
 

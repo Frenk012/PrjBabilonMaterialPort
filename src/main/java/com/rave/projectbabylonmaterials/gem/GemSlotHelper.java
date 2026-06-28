@@ -1,9 +1,7 @@
 package com.rave.projectbabylonmaterials.gem;
 
+import com.rave.projectbabylonmaterials.init.PBMDataComponents;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -12,9 +10,6 @@ import java.util.Optional;
 
 public final class GemSlotHelper {
     public static final int MAX_GEM_SLOTS = 2;
-    public static final String GEM_SLOT_COUNT_TAG = "PBGemSlotCount";
-
-    private static final String SOCKETED_GEMS_TAG = "PBGems";
 
     private GemSlotHelper() {
     }
@@ -30,12 +25,12 @@ public final class GemSlotHelper {
     }
 
     public static int getGemSlotCount(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(GEM_SLOT_COUNT_TAG, Tag.TAG_INT)) {
+        Integer count = stack.get(PBMDataComponents.GEM_SLOT_COUNT.get());
+        if (count == null) {
             return 0;
         }
 
-        return Math.max(0, Math.min(MAX_GEM_SLOTS, tag.getInt(GEM_SLOT_COUNT_TAG)));
+        return Math.max(0, Math.min(MAX_GEM_SLOTS, count));
     }
 
     public static boolean hasAnyGemSlots(ItemStack stack) {
@@ -73,12 +68,9 @@ public final class GemSlotHelper {
         ItemStack singleGem = gemStack.copy();
         singleGem.setCount(1);
 
-        CompoundTag tag = targetStack.getOrCreateTag();
-        ListTag listTag = tag.contains(SOCKETED_GEMS_TAG, Tag.TAG_LIST)
-                ? tag.getList(SOCKETED_GEMS_TAG, Tag.TAG_COMPOUND)
-                : new ListTag();
-        listTag.add(singleGem.save(new CompoundTag()));
-        tag.put(SOCKETED_GEMS_TAG, listTag);
+        List<ItemStack> gems = new ArrayList<>(getSocketedGems(targetStack));
+        gems.add(singleGem);
+        targetStack.set(PBMDataComponents.SOCKETED_GEMS.get(), List.copyOf(gems));
         return true;
     }
 
@@ -88,45 +80,39 @@ public final class GemSlotHelper {
             return extractedGems;
         }
 
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(SOCKETED_GEMS_TAG, Tag.TAG_LIST)) {
+        List<ItemStack> gems = getSocketedGems(stack);
+        if (gems.isEmpty()) {
             return extractedGems;
         }
 
-        ListTag listTag = tag.getList(SOCKETED_GEMS_TAG, Tag.TAG_COMPOUND);
-        int extractCount = Math.min(maxCount, listTag.size());
+        int extractCount = Math.min(maxCount, gems.size());
         for (int i = 0; i < extractCount; i++) {
-            ItemStack gemStack = ItemStack.of(listTag.getCompound(0));
+            ItemStack gemStack = gems.get(i);
             if (!gemStack.isEmpty()) {
                 extractedGems.add(gemStack);
             }
-            listTag.remove(0);
         }
 
-        if (listTag.isEmpty()) {
-            tag.remove(SOCKETED_GEMS_TAG);
-            if (tag.isEmpty()) {
-                stack.setTag(null);
-            }
+        List<ItemStack> remaining = new ArrayList<>(gems.subList(extractCount, gems.size()));
+        if (remaining.isEmpty()) {
+            stack.remove(PBMDataComponents.SOCKETED_GEMS.get());
         } else {
-            tag.put(SOCKETED_GEMS_TAG, listTag);
+            stack.set(PBMDataComponents.SOCKETED_GEMS.get(), List.copyOf(remaining));
         }
 
         return extractedGems;
     }
 
     public static List<ItemStack> getSocketedGems(ItemStack stack) {
-        List<ItemStack> gems = new ArrayList<>();
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(SOCKETED_GEMS_TAG, Tag.TAG_LIST)) {
-            return gems;
+        List<ItemStack> stored = stack.get(PBMDataComponents.SOCKETED_GEMS.get());
+        if (stored == null) {
+            return new ArrayList<>();
         }
 
-        ListTag listTag = tag.getList(SOCKETED_GEMS_TAG, Tag.TAG_COMPOUND);
-        for (int i = 0; i < listTag.size(); i++) {
-            ItemStack gemStack = ItemStack.of(listTag.getCompound(i));
+        List<ItemStack> gems = new ArrayList<>();
+        for (ItemStack gemStack : stored) {
             if (!gemStack.isEmpty()) {
-                gems.add(gemStack);
+                gems.add(gemStack.copy());
             }
         }
 
