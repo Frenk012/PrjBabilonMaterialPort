@@ -5,28 +5,28 @@ import com.rave.projectbabylonmaterials.menu.JewelryTableMenu;
 import com.rave.projectbabylonmaterials.menu.MagicalInfuserMenu;
 import com.rave.projectbabylonmaterials.menu.RefinementTableMenu;
 import com.rave.projectbabylonmaterials.menu.ReforgeTableMenu;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraftforge.common.extensions.IForgeMenuType;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class PBMMenus {
     public static final DeferredRegister<MenuType<?>> MENUS =
-            DeferredRegister.create(ForgeRegistries.MENU_TYPES, ProjectBabylonMaterials.MODID);
+            DeferredRegister.create(Registries.MENU, ProjectBabylonMaterials.MODID);
 
-    public static final RegistryObject<MenuType<MagicalInfuserMenu>> MAGICAL_INFUSER_MENU =
-            MENUS.register("magical_infuser", () -> IForgeMenuType.create(MagicalInfuserMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<MagicalInfuserMenu>> MAGICAL_INFUSER_MENU =
+            MENUS.register("magical_infuser", () -> IMenuTypeExtension.create(MagicalInfuserMenu::new));
 
-    public static final RegistryObject<MenuType<JewelryTableMenu>> JEWELRY_TABLE_MENU =
-            MENUS.register("jewelry_table", () -> IForgeMenuType.create(JewelryTableMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<JewelryTableMenu>> JEWELRY_TABLE_MENU =
+            MENUS.register("jewelry_table", () -> IMenuTypeExtension.create(JewelryTableMenu::new));
 
-    public static final RegistryObject<MenuType<ReforgeTableMenu>> REFORGE_TABLE_MENU =
-            MENUS.register("reforge_table", () -> IForgeMenuType.create(ReforgeTableMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<ReforgeTableMenu>> REFORGE_TABLE_MENU =
+            MENUS.register("reforge_table", () -> IMenuTypeExtension.create(ReforgeTableMenu::new));
 
-    public static final RegistryObject<MenuType<RefinementTableMenu>> REFINEMENT_TABLE_MENU =
-            MENUS.register("refinement_table", () -> IForgeMenuType.create(RefinementTableMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<RefinementTableMenu>> REFINEMENT_TABLE_MENU =
+            MENUS.register("refinement_table", () -> IMenuTypeExtension.create(RefinementTableMenu::new));
 
     private PBMMenus() {
     }

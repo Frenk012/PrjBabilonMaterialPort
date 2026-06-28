@@ -8,9 +8,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class PBMRecipes {
     public static final DeferredRegister<RecipeSerializer<?>> SERIALIZERS =
@@ -19,16 +19,16 @@ public final class PBMRecipes {
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES =
             DeferredRegister.create(Registries.RECIPE_TYPE, ProjectBabylonMaterials.MODID);
 
-    public static final RegistryObject<RecipeSerializer<MagicalInfuserRecipe>> MAGICAL_INFUSING_SERIALIZER =
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MagicalInfuserRecipe>> MAGICAL_INFUSING_SERIALIZER =
             SERIALIZERS.register("magical_infusing", () -> MagicalInfuserRecipe.Serializer.INSTANCE);
 
-    public static final RegistryObject<RecipeSerializer<HammerPlatingRecipe>> HAMMER_PLATING_SERIALIZER =
+    public static final DeferredHolder<RecipeSerializer<?>, SimpleCraftingRecipeSerializer<HammerPlatingRecipe>> HAMMER_PLATING_SERIALIZER =
             SERIALIZERS.register("hammer_plating", () -> new SimpleCraftingRecipeSerializer<>(HammerPlatingRecipe::new));
 
-    public static final RegistryObject<RecipeSerializer<GemDustRecipe>> GEM_DUST_SERIALIZER =
+    public static final DeferredHolder<RecipeSerializer<?>, SimpleCraftingRecipeSerializer<GemDustRecipe>> GEM_DUST_SERIALIZER =
             SERIALIZERS.register("gem_dust", () -> new SimpleCraftingRecipeSerializer<>(GemDustRecipe::new));
 
-    public static final RegistryObject<RecipeType<MagicalInfuserRecipe>> MAGICAL_INFUSING_TYPE =
+    public static final DeferredHolder<RecipeType<?>, RecipeType<MagicalInfuserRecipe>> MAGICAL_INFUSING_TYPE =
             RECIPE_TYPES.register("magical_infusing", () -> new RecipeType<>() {
                 @Override
                 public String toString() {

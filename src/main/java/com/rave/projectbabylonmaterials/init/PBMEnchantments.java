@@ -1,24 +1,22 @@
 package com.rave.projectbabylonmaterials.init;
 
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
-import com.rave.projectbabylonmaterials.enchantment.MagicResistanceEnchantment;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 
+/**
+ * In 1.21 enchantments are data-driven. The custom Magic Resistance enchantment is defined as a
+ * datapack JSON under {@code data/project_babylon_materials/enchantment/magic_resistance.json};
+ * code references it through this {@link ResourceKey} and resolves a {@code Holder<Enchantment>}
+ * from the registry access at runtime.
+ */
 public final class PBMEnchantments {
-    public static final DeferredRegister<Enchantment> ENCHANTMENTS =
-            DeferredRegister.create(ForgeRegistries.ENCHANTMENTS, ProjectBabylonMaterials.MODID);
-
-    public static final RegistryObject<Enchantment> MAGIC_RESISTANCE = ENCHANTMENTS.register("magic_resistance",
-            MagicResistanceEnchantment::new);
+    public static final ResourceKey<Enchantment> MAGIC_RESISTANCE =
+            ResourceKey.create(Registries.ENCHANTMENT,
+                    ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "magic_resistance"));
 
     private PBMEnchantments() {
-    }
-
-    public static void register(IEventBus modBus) {
-        ENCHANTMENTS.register(modBus);
     }
 }

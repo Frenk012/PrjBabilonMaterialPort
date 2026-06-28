@@ -13,20 +13,19 @@ import com.rave.projectbabylonmaterials.init.PBAttributes;
 import com.rave.projectbabylonmaterials.init.PBMBlockEntities;
 import com.rave.projectbabylonmaterials.init.PBMBlocks;
 import com.rave.projectbabylonmaterials.init.PBMCreativeTabs;
+import com.rave.projectbabylonmaterials.init.PBMDataComponents;
 import com.rave.projectbabylonmaterials.init.PBMEffects;
-import com.rave.projectbabylonmaterials.init.PBMEnchantments;
 import com.rave.projectbabylonmaterials.init.PBMItems;
-import com.rave.projectbabylonmaterials.init.PBMMenus;
 import com.rave.projectbabylonmaterials.init.PBMLootModifiers;
+import com.rave.projectbabylonmaterials.init.PBMMenus;
 import com.rave.projectbabylonmaterials.init.PBMRecipes;
 import com.rave.projectbabylonmaterials.network.PBNetwork;
 import com.rave.projectbabylonmaterials.setbonus.ArmorSetBonusManager;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
 @Mod(ProjectBabylonMaterials.MODID)
@@ -34,29 +33,31 @@ public class ProjectBabylonMaterials {
     public static final String MODID = "project_babylon_materials";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public ProjectBabylonMaterials(FMLJavaModLoadingContext context) {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, PBMClientConfig.SPEC);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, PBMServerConfig.SPEC);
-        IEventBus modBus = context.getModEventBus();
-        IEventBus forgeBus = MinecraftForge.EVENT_BUS;
+    public ProjectBabylonMaterials(IEventBus modBus, ModContainer modContainer) {
+        modContainer.registerConfig(ModConfig.Type.CLIENT, PBMClientConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.SERVER, PBMServerConfig.SPEC);
 
-        PBNetwork.register();
+        PBMDataComponents.register(modBus);
         PBAttributes.register(modBus);
         PBMBlocks.register(modBus);
         PBMItems.register(modBus);
         PBMCreativeTabs.register(modBus);
         PBMEffects.register(modBus);
-        PBMEnchantments.register(modBus);
         PBMBlockEntities.register(modBus);
         PBMMenus.register(modBus);
         PBMLootModifiers.register(modBus);
         PBMRecipes.register(modBus);
-        forgeBus.register(ArmorSetBonusManager.class);
-        forgeBus.register(CritDamageHandler.class);
-        forgeBus.register(GemEffectHandler.class);
-        forgeBus.register(ItemRarityHandler.class);
-        forgeBus.register(LivingEntityHealthHandler.class);
-        forgeBus.register(PlayerHealthHandler.class);
-        forgeBus.register(VanillaEnchantmentRebalanceHandler.class);
+
+        // NeoForge payload registration happens on the mod bus during RegisterPayloadHandlersEvent.
+        modBus.addListener(PBNetwork::register);
+
+        IEventBus gameBus = NeoForge.EVENT_BUS;
+        gameBus.register(ArmorSetBonusManager.class);
+        gameBus.register(CritDamageHandler.class);
+        gameBus.register(GemEffectHandler.class);
+        gameBus.register(ItemRarityHandler.class);
+        gameBus.register(LivingEntityHealthHandler.class);
+        gameBus.register(PlayerHealthHandler.class);
+        gameBus.register(VanillaEnchantmentRebalanceHandler.class);
     }
 }

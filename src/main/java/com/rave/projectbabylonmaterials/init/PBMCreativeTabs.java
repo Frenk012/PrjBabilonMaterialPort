@@ -4,15 +4,15 @@ import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class PBMCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ProjectBabylonMaterials.MODID);
 
-    public static final RegistryObject<CreativeModeTab> MATERIALS_TAB = CREATIVE_MODE_TABS.register("materials_tab",
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MATERIALS_TAB = CREATIVE_MODE_TABS.register("materials_tab",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("creativetab.project_babylon_materials.materials_tab"))
                     .icon(() -> PBMItems.DRAGONSTEEL_INGOT.get().getDefaultInstance())
@@ -87,7 +87,7 @@ public final class PBMCreativeTabs {
                     })
                     .build());
 
-    public static final RegistryObject<CreativeModeTab> GEMS_TAB = CREATIVE_MODE_TABS.register("gems_tab",
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> GEMS_TAB = CREATIVE_MODE_TABS.register("gems_tab",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("creativetab.project_babylon_materials.gems_tab"))
                     .icon(() -> PBMItems.RUBY_STONE.get().getDefaultInstance())
