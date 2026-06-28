@@ -11,13 +11,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
 public class ReforgeTableScreen extends AbstractContainerScreen<ReforgeTableMenu> {
-    private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/reforge_table.png");
-    private static final ResourceLocation HAMMER_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/hammer_icon.png");
-    private static final ResourceLocation HAMMER_ICON_HOVER = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/hammer_icon_chosen.png");
-    private static final ResourceLocation EXP_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/exp_icon.png");
-    private static final ResourceLocation GEM_MATERIAL_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/gem_material_slot_icon.png");
-    private static final ResourceLocation WEAPON_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/weapon_slot_icon.png");
-    private static final ResourceLocation GEM_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/gem_slot_icon.png");
+    private static final ResourceLocation GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/reforge_table.png");
+    private static final ResourceLocation HAMMER_ICON = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/hammer_icon.png");
+    private static final ResourceLocation HAMMER_ICON_HOVER = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/hammer_icon_chosen.png");
+    private static final ResourceLocation EXP_ICON = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/exp_icon.png");
+    private static final ResourceLocation GEM_MATERIAL_SLOT_ICON = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/gem_material_slot_icon.png");
+    private static final ResourceLocation WEAPON_SLOT_ICON = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/weapon_slot_icon.png");
+    private static final ResourceLocation GEM_SLOT_ICON = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/gem_slot_icon.png");
     private static final int HAMMER_X = 80;
     private static final int HAMMER_Y = 86;
     private static final int HAMMER_SIZE = 16;
@@ -51,7 +51,7 @@ public class ReforgeTableScreen extends AbstractContainerScreen<ReforgeTableMenu
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }

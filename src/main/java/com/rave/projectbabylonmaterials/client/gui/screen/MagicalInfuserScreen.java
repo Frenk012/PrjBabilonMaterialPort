@@ -11,9 +11,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
 public class MagicalInfuserScreen extends AbstractContainerScreen<MagicalInfuserMenu> {
-    private static final ResourceLocation GUI_TEXTURE = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/magical_infuser.png");
-    private static final ResourceLocation DUST_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/dust_slot_icon.png");
-    private static final ResourceLocation INGOT_SLOT_ICON = new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/ingot_slot_icon.png");
+    private static final ResourceLocation GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/magical_infuser.png");
+    private static final ResourceLocation DUST_SLOT_ICON = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/dust_slot_icon.png");
+    private static final ResourceLocation INGOT_SLOT_ICON = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/slots/ingot_slot_icon.png");
     private static final int FUEL_U = 176;
     private static final int FUEL_V = 17;
     private static final int FUEL_WIDTH = 6;
@@ -58,7 +58,7 @@ public class MagicalInfuserScreen extends AbstractContainerScreen<MagicalInfuser
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
