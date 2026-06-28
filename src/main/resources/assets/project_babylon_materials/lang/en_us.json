@@ -194,7 +194,9 @@
     "item.project_babylon_materials.emerald_stone.desc":  "Increases stamina by %s",
         "item.project_babylon_materials.aquamarine_stone":  "Cut Aquamarine",
     "item.project_babylon_materials.aquamarine_stone.desc":  "Increases movement speed by %s",
-    "tooltip.project_babylon_materials.applies_to":  "Applies to"
+    "tooltip.project_babylon_materials.applies_to":  "Applies to",
+    "tag.item.project_babylon_materials.gems":  "Gems",
+    "tag.item.project_babylon_materials.smithhammers":  "Smith Hammers"
 }
 
 
