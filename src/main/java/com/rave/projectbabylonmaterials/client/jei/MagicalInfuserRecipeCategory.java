@@ -5,7 +5,6 @@ import com.rave.projectbabylonmaterials.recipe.MagicalInfuserRecipe;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.ingredients.IIngredientRenderer;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
@@ -22,7 +21,7 @@ import java.util.List;
 
 public class MagicalInfuserRecipeCategory implements IRecipeCategory<MagicalInfuserRecipe> {
     private static final ResourceLocation GUI_TEXTURE =
-            new ResourceLocation(ProjectBabylonMaterials.MODID, "textures/gui/container/magical_infuser.png");
+            ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "textures/gui/container/magical_infuser.png");
     private static final int WIDTH = 150;
     private static final int HEIGHT = 76;
 
@@ -46,8 +45,13 @@ public class MagicalInfuserRecipeCategory implements IRecipeCategory<MagicalInfu
     }
 
     @Override
-    public IDrawable getBackground() {
-        return background;
+    public int getWidth() {
+        return WIDTH;
+    }
+
+    @Override
+    public int getHeight() {
+        return HEIGHT;
     }
 
     @Override
@@ -68,6 +72,8 @@ public class MagicalInfuserRecipeCategory implements IRecipeCategory<MagicalInfu
     @Override
     public void draw(MagicalInfuserRecipe recipe, mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView,
                      GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        // JEI 19 no longer auto-draws getBackground(); render the GUI texture in draw().
+        background.draw(guiGraphics, 0, 0);
         Font font = Minecraft.getInstance().font;
         guiGraphics.drawString(font, Integer.toString(recipe.getCraftTime() / 20) + "s", 118, 61, 0x808080, false);
     }

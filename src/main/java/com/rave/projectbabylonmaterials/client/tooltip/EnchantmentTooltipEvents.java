@@ -5,19 +5,21 @@ import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.enchantment.EnchantmentSlotHelper;
 import com.rave.projectbabylonmaterials.tooltip.EnchantmentDetailsTooltipData;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderTooltipEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderTooltipEvent;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,7 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-@Mod.EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public final class EnchantmentTooltipEvents {
     private static final Set<String> MODIFIER_HEADERS = Set.of(
             "item.modifiers.mainhand",
@@ -172,11 +174,11 @@ public final class EnchantmentTooltipEvents {
         for (int i = 0; i < visibleSlotCount; i++) {
             if (i < enchantments.size()) {
                 EnchantmentSlotHelper.SlottedEnchantment slottedEnchantment = enchantments.get(i);
-                Enchantment enchantment = slottedEnchantment.enchantment();
+                Holder<Enchantment> enchantment = slottedEnchantment.enchantment();
                 slots.add(new EnchantmentDetailsTooltipData.SlotEntry(
                         false,
                         new ItemStack(Items.ENCHANTED_BOOK),
-                        enchantment.getFullname(slottedEnchantment.level()),
+                        Enchantment.getFullname(enchantment, slottedEnchantment.level()),
                         createDescription(enchantment),
                         createApplicableItems(enchantment)
                 ));
@@ -198,17 +200,25 @@ public final class EnchantmentTooltipEvents {
         );
     }
 
-    private static Component createDescription(Enchantment enchantment) {
-        String descriptionKey = enchantment.getDescriptionId() + ".desc";
+    private static Component createDescription(Holder<Enchantment> enchantment) {
+        String descriptionKey = descriptionIdOf(enchantment) + ".desc";
         return I18n.exists(descriptionKey)
                 ? Component.translatable(descriptionKey)
                 : Component.translatable("tooltip.project_babylon_materials.no_enchantment_description");
     }
 
+    private static String descriptionIdOf(Holder<Enchantment> enchantment) {
+        // 1.21.1: Enchantment is data-driven and no longer exposes getDescriptionId();
+        // reconstruct the legacy "enchantment.<namespace>.<path>" key from the registry id.
+        return enchantment.unwrapKey()
+                .map(key -> Util.makeDescriptionId("enchantment", key.location()))
+                .orElse("enchantment.unknown");
+    }
+
     private static Set<String> buildEnchantmentLineSet(ItemStack stack) {
         Set<String> enchantmentLines = new HashSet<>();
         for (EnchantmentSlotHelper.SlottedEnchantment enchantment : EnchantmentSlotHelper.getOrderedEnchantments(stack)) {
-            enchantmentLines.add(enchantment.enchantment().getFullname(enchantment.level()).getString());
+            enchantmentLines.add(Enchantment.getFullname(enchantment.enchantment(), enchantment.level()).getString());
         }
         return enchantmentLines;
     }
@@ -269,8 +279,8 @@ public final class EnchantmentTooltipEvents {
         return false;
     }
 
-    private static List<ItemStack> createApplicableItems(Enchantment enchantment) {
-        return switch (enchantment.getDescriptionId()) {
+    private static List<ItemStack> createApplicableItems(Holder<Enchantment> enchantment) {
+        return switch (descriptionIdOf(enchantment)) {
             case "enchantment.minecraft.aqua_affinity", "enchantment.minecraft.respiration" ->
                     List.of(stackOf(Items.IRON_HELMET));
             case "enchantment.minecraft.depth_strider", "enchantment.minecraft.feather_falling",

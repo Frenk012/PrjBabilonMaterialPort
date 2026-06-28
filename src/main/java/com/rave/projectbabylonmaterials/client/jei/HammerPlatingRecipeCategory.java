@@ -17,15 +17,13 @@ import java.util.List;
 
 public class HammerPlatingRecipeCategory implements IRecipeCategory<HammerPlatingJeiRecipe> {
     private static final ResourceLocation FURNACE_TEXTURE =
-            new ResourceLocation("minecraft", "textures/gui/container/furnace.png");
+            ResourceLocation.fromNamespaceAndPath("minecraft", "textures/gui/container/furnace.png");
     private static final int WIDTH = 116;
     private static final int HEIGHT = 18;
 
-    private final IDrawable background;
     private final IDrawable icon;
 
     public HammerPlatingRecipeCategory(IGuiHelper guiHelper) {
-        this.background = guiHelper.createBlankDrawable(WIDTH, HEIGHT);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK,
                 new ItemStack(PBMItems.IRON_SMITHHAMMER.get()));
     }
@@ -41,8 +39,13 @@ public class HammerPlatingRecipeCategory implements IRecipeCategory<HammerPlatin
     }
 
     @Override
-    public IDrawable getBackground() {
-        return background;
+    public int getWidth() {
+        return WIDTH;
+    }
+
+    @Override
+    public int getHeight() {
+        return HEIGHT;
     }
 
     @Override

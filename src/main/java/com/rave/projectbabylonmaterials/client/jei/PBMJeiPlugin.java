@@ -22,7 +22,7 @@ import java.util.List;
 @JeiPlugin
 public class PBMJeiPlugin implements IModPlugin {
     public static final ResourceLocation PLUGIN_UID =
-            new ResourceLocation(ProjectBabylonMaterials.MODID, "jei_plugin");
+            ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "jei_plugin");
     public static final RecipeType<MagicalInfuserRecipe> MAGICAL_INFUSER_RECIPE_TYPE =
             RecipeType.create(ProjectBabylonMaterials.MODID, "magical_infusing", MagicalInfuserRecipe.class);
     public static final RecipeType<HammerPlatingJeiRecipe> HAMMER_PLATING_RECIPE_TYPE =
@@ -63,6 +63,9 @@ public class PBMJeiPlugin implements IModPlugin {
             return Collections.emptyList();
         }
 
-        return level.getRecipeManager().getAllRecipesFor(PBMRecipes.MAGICAL_INFUSING_TYPE.get());
+        return level.getRecipeManager().getAllRecipesFor(PBMRecipes.MAGICAL_INFUSING_TYPE.get())
+                .stream()
+                .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                .toList();
     }
 }

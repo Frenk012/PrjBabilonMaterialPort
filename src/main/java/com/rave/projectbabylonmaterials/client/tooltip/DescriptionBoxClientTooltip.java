@@ -194,12 +194,11 @@ public class DescriptionBoxClientTooltip implements ClientTooltipComponent {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, texture);
 
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(matrix, x, y, 0.0F).uv(u0, v0).endVertex();
-        buffer.vertex(matrix, x, y + drawHeight, 0.0F).uv(u0, v1).endVertex();
-        buffer.vertex(matrix, x + drawWidth, y + drawHeight, 0.0F).uv(u1, v1).endVertex();
-        buffer.vertex(matrix, x + drawWidth, y, 0.0F).uv(u1, v0).endVertex();
-        com.mojang.blaze3d.vertex.BufferUploader.drawWithShader(buffer.end());
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex(matrix, x, y, 0.0F).setUv(u0, v0);
+        buffer.addVertex(matrix, x, y + drawHeight, 0.0F).setUv(u0, v1);
+        buffer.addVertex(matrix, x + drawWidth, y + drawHeight, 0.0F).setUv(u1, v1);
+        buffer.addVertex(matrix, x + drawWidth, y, 0.0F).setUv(u1, v0);
+        com.mojang.blaze3d.vertex.BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 }
