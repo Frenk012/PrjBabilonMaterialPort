@@ -11,23 +11,26 @@ credits=""
 authors="Rave"
 description='''This mod is a core mod for Project Babylon mod series.'''
 
-[[dependencies.project_babylon_materials]]
-modId="forge"
-mandatory=true
-versionRange="${forge_version_range}"
+[[mixins]]
+config="${mod_id}.mixins.json"
+
+[[dependencies.${mod_id}]]
+modId="neoforge"
+type="required"
+versionRange="${neo_version_range}"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.project_babylon_materials]]
-modId="attributefix"
-mandatory=true
-versionRange="[21.0.5,)"
-ordering="NONE"
-side="BOTH"
-
-[[dependencies.project_babylon_materials]]
+[[dependencies.${mod_id}]]
 modId="minecraft"
-mandatory=true
+type="required"
 versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="attributefix"
+type="optional"
+versionRange="[21.1.0,)"
 ordering="NONE"
 side="BOTH"
