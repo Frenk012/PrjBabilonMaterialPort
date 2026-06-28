@@ -8,7 +8,7 @@ import com.rave.projectbabylonmaterials.init.PBMMenus;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityTier;
 import com.rave.projectbabylonmaterials.rarity.ItemReforgeHelper;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -28,7 +28,7 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
 
     private final Container container;
 
-    public ReforgeTableMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buffer) {
+    public ReforgeTableMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
         this(containerId, playerInventory, getBlockEntity(playerInventory, buffer));
     }
 
@@ -69,7 +69,7 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
         addPlayerHotbar(playerInventory);
     }
 
-    private static Container getBlockEntity(Inventory inventory, FriendlyByteBuf buffer) {
+    private static Container getBlockEntity(Inventory inventory, RegistryFriendlyByteBuf buffer) {
         Level level = inventory.player.level();
         BlockEntity blockEntity = level.getBlockEntity(buffer.readBlockPos());
         if (blockEntity instanceof Container container) {

@@ -4,7 +4,7 @@ import com.rave.projectbabylonmaterials.block.entity.JewelryTableBlockEntity;
 import com.rave.projectbabylonmaterials.gem.GemUpgradeHelper;
 import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -23,7 +23,7 @@ public class JewelryTableMenu extends AbstractContainerMenu {
 
     private final Container container;
 
-    public JewelryTableMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buffer) {
+    public JewelryTableMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
         this(containerId, playerInventory, getBlockEntity(playerInventory, buffer));
     }
 
@@ -64,7 +64,7 @@ public class JewelryTableMenu extends AbstractContainerMenu {
         addPlayerHotbar(playerInventory);
     }
 
-    private static Container getBlockEntity(Inventory inventory, FriendlyByteBuf buffer) {
+    private static Container getBlockEntity(Inventory inventory, RegistryFriendlyByteBuf buffer) {
         Level level = inventory.player.level();
         BlockEntity blockEntity = level.getBlockEntity(buffer.readBlockPos());
         if (blockEntity instanceof Container container) {

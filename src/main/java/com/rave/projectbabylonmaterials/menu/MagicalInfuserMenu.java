@@ -3,7 +3,7 @@ package com.rave.projectbabylonmaterials.menu;
 import com.rave.projectbabylonmaterials.block.entity.MagicalInfuserBlockEntity;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
 import com.rave.projectbabylonmaterials.init.PBMItems;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -19,7 +19,7 @@ public class MagicalInfuserMenu extends AbstractContainerMenu {
     private final Container container;
     private final ContainerData data;
 
-    public MagicalInfuserMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buffer) {
+    public MagicalInfuserMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
         this(containerId, playerInventory, getBlockEntity(playerInventory, buffer), new SimpleContainerData(3));
     }
 
@@ -57,7 +57,7 @@ public class MagicalInfuserMenu extends AbstractContainerMenu {
         this.addDataSlots(data);
     }
 
-    private static Container getBlockEntity(Inventory inventory, FriendlyByteBuf buffer) {
+    private static Container getBlockEntity(Inventory inventory, RegistryFriendlyByteBuf buffer) {
         Level level = inventory.player.level();
         BlockEntity blockEntity = level.getBlockEntity(buffer.readBlockPos());
         if (blockEntity instanceof Container container) {

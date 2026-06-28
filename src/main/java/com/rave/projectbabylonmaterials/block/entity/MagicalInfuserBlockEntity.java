@@ -7,8 +7,8 @@ import com.rave.projectbabylonmaterials.init.PBMRecipes;
 import com.rave.projectbabylonmaterials.menu.MagicalInfuserMenu;
 import com.rave.projectbabylonmaterials.recipe.MagicalInfuserRecipe;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
@@ -21,6 +21,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -129,7 +131,23 @@ public class MagicalInfuserBlockEntity extends BlockEntity implements WorldlyCon
             return Optional.empty();
         }
 
-        return this.level.getRecipeManager().getRecipeFor(PBMRecipes.MAGICAL_INFUSING_TYPE.get(), this, this.level);
+        // TODO(port): MagicalInfuserRecipe lives in the recipe cluster; assumes it is ported to Recipe<RecipeInput>
+        // reading top input at index SLOT_TOP_INPUT and bottom input at index SLOT_BOTTOM_INPUT.
+        RecipeInput input = new RecipeInput() {
+            @Override
+            public ItemStack getItem(int index) {
+                return MagicalInfuserBlockEntity.this.items.get(index);
+            }
+
+            @Override
+            public int size() {
+                return MagicalInfuserBlockEntity.this.items.size();
+            }
+        };
+
+        return this.level.getRecipeManager()
+                .getRecipeFor(PBMRecipes.MAGICAL_INFUSING_TYPE.get(), input, this.level)
+                .map(RecipeHolder::value);
     }
 
     private boolean canConsumeFuel() {
@@ -146,7 +164,7 @@ public class MagicalInfuserBlockEntity extends BlockEntity implements WorldlyCon
 
     private boolean canCraft(MagicalInfuserRecipe recipe) {
         ItemStack outputStack = this.items.get(SLOT_OUTPUT);
-        ItemStack recipeResult = recipe.getResultItem(RegistryAccess.EMPTY);
+        ItemStack recipeResult = recipe.getResultItem(this.level.registryAccess());
 
         if (recipeResult.isEmpty()) {
             return false;
@@ -156,7 +174,7 @@ public class MagicalInfuserBlockEntity extends BlockEntity implements WorldlyCon
             return true;
         }
 
-        if (!ItemStack.isSameItemSameTags(outputStack, recipeResult)) {
+        if (!ItemStack.isSameItemSameComponents(outputStack, recipeResult)) {
             return false;
         }
 
@@ -164,7 +182,7 @@ public class MagicalInfuserBlockEntity extends BlockEntity implements WorldlyCon
     }
 
     private void finishRecipe(MagicalInfuserRecipe recipe) {
-        ItemStack result = recipe.getResultItem(RegistryAccess.EMPTY).copy();
+        ItemStack result = recipe.getResultItem(this.level.registryAccess()).copy();
         ItemStack output = this.items.get(SLOT_OUTPUT);
 
         this.items.get(SLOT_TOP_INPUT).shrink(recipe.getTopCount());
@@ -197,6 +215,9 @@ public class MagicalInfuserBlockEntity extends BlockEntity implements WorldlyCon
         return new MagicalInfuserMenu(containerId, inventory, this, this.data);
     }
 
+    // TODO(port): vanilla hoppers still automate this WorldlyContainer directly in 1.21.1 (behavior preserved).
+    // IItemHandler-based pipe automation was never exposed in the 1.20.1 source either; if it is wanted,
+    // register Capabilities.ItemHandler.BLOCK via a RegisterCapabilitiesEvent (mod-bus, outside this cluster).
     @Override
     public int[] getSlotsForFace(net.minecraft.core.Direction side) {
         if (side == net.minecraft.core.Direction.DOWN) {
@@ -286,19 +307,19 @@ public class MagicalInfuserBlockEntity extends BlockEntity implements WorldlyCon
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        ContainerHelper.saveAllItems(tag, this.items);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        ContainerHelper.saveAllItems(tag, this.items, registries);
         tag.putInt("fuel_operations", this.fuelOperations);
         tag.putInt("progress", this.progress);
         tag.putInt("max_progress", this.maxProgress);
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-        ContainerHelper.loadAllItems(tag, this.items);
+        ContainerHelper.loadAllItems(tag, this.items, registries);
         this.fuelOperations = tag.getInt("fuel_operations");
         this.progress = tag.getInt("progress");
         this.maxProgress = tag.getInt("max_progress");

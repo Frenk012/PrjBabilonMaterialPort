@@ -1,11 +1,12 @@
 package com.rave.projectbabylonmaterials.block.custom;
 
+import com.mojang.serialization.MapCodec;
+
 import com.rave.projectbabylonmaterials.block.entity.JewelryTableBlockEntity;
 import com.rave.projectbabylonmaterials.init.PBMBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
@@ -26,9 +27,15 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.network.NetworkHooks;
 
 public class JewelryTableBlock extends BaseEntityBlock {
+    public static final MapCodec<JewelryTableBlock> CODEC = simpleCodec(JewelryTableBlock::new);
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
@@ -63,14 +70,14 @@ public class JewelryTableBlock extends BaseEntityBlock {
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
 
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof MenuProvider menuProvider && player instanceof ServerPlayer serverPlayer) {
-            NetworkHooks.openScreen(serverPlayer, menuProvider, pos);
+            serverPlayer.openMenu(menuProvider, buf -> buf.writeBlockPos(pos));
         }
 
         return InteractionResult.CONSUME;

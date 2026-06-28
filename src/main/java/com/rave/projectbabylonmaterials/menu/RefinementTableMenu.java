@@ -5,7 +5,7 @@ import com.rave.projectbabylonmaterials.gem.GemSlotHelper;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityTier;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -25,7 +25,7 @@ public class RefinementTableMenu extends AbstractContainerMenu {
 
     private final Container container;
 
-    public RefinementTableMenu(int containerId, Inventory playerInventory, FriendlyByteBuf buffer) {
+    public RefinementTableMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
         this(containerId, playerInventory, getBlockEntity(playerInventory, buffer));
     }
 
@@ -60,7 +60,7 @@ public class RefinementTableMenu extends AbstractContainerMenu {
         addPlayerHotbar(playerInventory);
     }
 
-    private static Container getBlockEntity(Inventory inventory, FriendlyByteBuf buffer) {
+    private static Container getBlockEntity(Inventory inventory, RegistryFriendlyByteBuf buffer) {
         Level level = inventory.player.level();
         BlockEntity blockEntity = level.getBlockEntity(buffer.readBlockPos());
         if (blockEntity instanceof Container container) {
