@@ -1,26 +1,27 @@
 package com.rave.projectbabylonmaterials.enchantment;
 
+import com.rave.projectbabylonmaterials.init.PBMDataComponents;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public final class EnchantmentSlotHelper {
     public static final int MAX_ENCHANTMENT_SLOTS = 4;
     public static final int NO_AVAILABLE_ENCHANTMENT_SLOTS_COST = -100;
     public static final int NO_ENCHANTMENT_SLOTS_COST = -101;
-    public static final String ENCHANTMENT_SLOT_COUNT_TAG = "PBEnchantSlotCount";
 
-    private static final String ENCHANTMENTS_TAG = "Enchantments";
-    private static final String STORED_ENCHANTMENTS_TAG = "StoredEnchantments";
+    private static final Comparator<Object2IntMap.Entry<Holder<Enchantment>>> BY_ID =
+            Comparator.comparing(entry -> idOf(entry.getKey()));
 
     private EnchantmentSlotHelper() {
     }
@@ -66,12 +67,12 @@ public final class EnchantmentSlotHelper {
             return MAX_ENCHANTMENT_SLOTS;
         }
 
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(ENCHANTMENT_SLOT_COUNT_TAG, Tag.TAG_INT)) {
+        Integer count = stack.get(PBMDataComponents.ENCHANT_SLOT_COUNT.get());
+        if (count == null) {
             return 0;
         }
 
-        return Math.max(0, Math.min(MAX_ENCHANTMENT_SLOTS, tag.getInt(ENCHANTMENT_SLOT_COUNT_TAG)));
+        return Math.max(0, Math.min(MAX_ENCHANTMENT_SLOTS, count));
     }
 
     public static int getVisibleSlotCount(ItemStack stack) {
@@ -84,32 +85,15 @@ public final class EnchantmentSlotHelper {
 
     public static List<SlottedEnchantment> getOrderedEnchantments(ItemStack stack) {
         List<SlottedEnchantment> enchantments = new ArrayList<>();
-        CompoundTag tag = stack.getTag();
-        if (tag == null) {
+        if (stack.isEmpty()) {
             return enchantments;
         }
 
-        String tagKey = getEnchantmentTagKey(stack);
-        if (!tag.contains(tagKey, Tag.TAG_LIST)) {
-            return enchantments;
-        }
-
-        ListTag listTag = tag.getList(tagKey, Tag.TAG_COMPOUND);
-        for (int i = 0; i < listTag.size(); i++) {
-            CompoundTag enchantmentTag = listTag.getCompound(i);
-            String enchantmentId = enchantmentTag.getString("id");
-            int level = enchantmentTag.getInt("lvl");
-            ResourceLocation resourceLocation = ResourceLocation.tryParse(enchantmentId);
-            if (resourceLocation == null) {
-                continue;
-            }
-
-            Enchantment enchantment = ForgeRegistries.ENCHANTMENTS.getValue(resourceLocation);
-            if (enchantment == null) {
-                continue;
-            }
-
-            enchantments.add(new SlottedEnchantment(enchantment, level));
+        ItemEnchantments stored = stack.getOrDefault(getEnchantmentComponentType(stack), ItemEnchantments.EMPTY);
+        List<Object2IntMap.Entry<Holder<Enchantment>>> entries = new ArrayList<>(stored.entrySet());
+        entries.sort(BY_ID);
+        for (Object2IntMap.Entry<Holder<Enchantment>> entry : entries) {
+            enchantments.add(new SlottedEnchantment(entry.getKey(), entry.getIntValue()));
         }
 
         return enchantments;
@@ -120,28 +104,23 @@ public final class EnchantmentSlotHelper {
             return false;
         }
 
-        CompoundTag tag = stack.getTag();
-        if (tag == null) {
-            return false;
-        }
-
-        String tagKey = getEnchantmentTagKey(stack);
-        if (!tag.contains(tagKey, Tag.TAG_LIST)) {
-            return false;
-        }
-
+        DataComponentType<ItemEnchantments> componentType = getEnchantmentComponentType(stack);
+        ItemEnchantments stored = stack.getOrDefault(componentType, ItemEnchantments.EMPTY);
         int limit = getEnchantmentSlotCount(stack);
-        ListTag enchantmentTags = tag.getList(tagKey, Tag.TAG_COMPOUND);
-        if (enchantmentTags.size() <= limit) {
+        if (stored.size() <= limit) {
             return false;
         }
 
-        ListTag trimmedTags = new ListTag();
+        List<Object2IntMap.Entry<Holder<Enchantment>>> entries = new ArrayList<>(stored.entrySet());
+        entries.sort(BY_ID);
+
+        ItemEnchantments.Mutable trimmed = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
         for (int i = 0; i < limit; i++) {
-            trimmedTags.add(enchantmentTags.getCompound(i).copy());
+            Object2IntMap.Entry<Holder<Enchantment>> entry = entries.get(i);
+            trimmed.set(entry.getKey(), entry.getIntValue());
         }
 
-        tag.put(tagKey, trimmedTags);
+        stack.set(componentType, trimmed.toImmutable());
         return true;
     }
 
@@ -150,13 +129,17 @@ public final class EnchantmentSlotHelper {
     }
 
     private static boolean isLimitedBySlots(ItemStack stack) {
-        return ItemRarityHelper.supportsRarity(stack) || stack.getTag() != null && stack.getTag().contains(ENCHANTMENT_SLOT_COUNT_TAG, Tag.TAG_INT);
+        return ItemRarityHelper.supportsRarity(stack) || stack.has(PBMDataComponents.ENCHANT_SLOT_COUNT.get());
     }
 
-    private static String getEnchantmentTagKey(ItemStack stack) {
-        return stack.is(Items.ENCHANTED_BOOK) ? STORED_ENCHANTMENTS_TAG : ENCHANTMENTS_TAG;
+    private static DataComponentType<ItemEnchantments> getEnchantmentComponentType(ItemStack stack) {
+        return stack.is(Items.ENCHANTED_BOOK) ? DataComponents.STORED_ENCHANTMENTS : DataComponents.ENCHANTMENTS;
     }
 
-    public record SlottedEnchantment(Enchantment enchantment, int level) {
+    private static String idOf(Holder<Enchantment> holder) {
+        return holder.unwrapKey().map(key -> key.location().toString()).orElse("");
+    }
+
+    public record SlottedEnchantment(Holder<Enchantment> enchantment, int level) {
     }
 }
