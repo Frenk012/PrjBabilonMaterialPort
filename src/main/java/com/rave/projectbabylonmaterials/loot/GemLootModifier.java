@@ -1,6 +1,6 @@
 package com.rave.projectbabylonmaterials.loot;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.rave.projectbabylonmaterials.gem.GemUpgradeHelper;
 import com.rave.projectbabylonmaterials.gem.GemType;
@@ -12,11 +12,11 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraftforge.common.loot.IGlobalLootModifier;
-import net.minecraftforge.common.loot.LootModifier;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
+import net.neoforged.neoforge.common.loot.LootModifier;
 
 public class GemLootModifier extends LootModifier {
-    public static final Codec<GemLootModifier> CODEC = RecordCodecBuilder.create(inst -> codecStart(inst)
+    public static final MapCodec<GemLootModifier> CODEC = RecordCodecBuilder.mapCodec(inst -> codecStart(inst)
             .apply(inst, GemLootModifier::new));
 
     private static final float GEM_ROLL_CHANCE = 0.12F;
@@ -49,7 +49,7 @@ public class GemLootModifier extends LootModifier {
     }
 
     @Override
-    public Codec<? extends IGlobalLootModifier> codec() {
+    public MapCodec<? extends IGlobalLootModifier> codec() {
         return CODEC;
     }
 

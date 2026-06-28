@@ -1,16 +1,13 @@
 package com.rave.projectbabylonmaterials.rarity;
 
-import com.rave.projectbabylonmaterials.enchantment.EnchantmentSlotHelper;
 import com.rave.projectbabylonmaterials.gem.GemApplication;
-import com.rave.projectbabylonmaterials.gem.GemSlotHelper;
 import com.rave.projectbabylonmaterials.gem.GemUpgradeHelper;
+import com.rave.projectbabylonmaterials.init.PBMDataComponents;
 import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.item.gem.GemItem;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BowItem;
@@ -23,7 +20,6 @@ import net.minecraft.world.item.TridentItem;
 import java.util.Optional;
 
 public final class ItemRarityHelper {
-    public static final String RARITY_TAG = "PBRarity";
 
     private ItemRarityHelper() {
     }
@@ -52,16 +48,11 @@ public final class ItemRarityHelper {
     }
 
     public static boolean hasRarity(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.contains(RARITY_TAG, Tag.TAG_STRING);
+        return stack.has(PBMDataComponents.RARITY.get());
     }
 
     public static Optional<ItemRarityTier> getRarity(ItemStack stack) {
-        if (!hasRarity(stack)) {
-            return Optional.empty();
-        }
-
-        return Optional.of(ItemRarityTier.byId(stack.getTag().getString(RARITY_TAG)));
+        return Optional.ofNullable(stack.get(PBMDataComponents.RARITY.get()));
     }
 
     public static boolean ensureRarity(ItemStack stack, RandomSource random) {
@@ -85,12 +76,11 @@ public final class ItemRarityHelper {
     }
 
     public static void applyRarity(ItemStack stack, ItemRarityTier rarity, RandomSource random) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putString(RARITY_TAG, rarity.getId());
+        stack.set(PBMDataComponents.RARITY.get(), rarity);
 
         if (supportsSlottedItem(stack)) {
-            tag.putInt(EnchantmentSlotHelper.ENCHANTMENT_SLOT_COUNT_TAG, rollEnchantSlots(rarity, random));
-            tag.putInt(GemSlotHelper.GEM_SLOT_COUNT_TAG, rollGemSlots(rarity, random));
+            stack.set(PBMDataComponents.ENCHANT_SLOT_COUNT.get(), rollEnchantSlots(rarity, random));
+            stack.set(PBMDataComponents.GEM_SLOT_COUNT.get(), rollGemSlots(rarity, random));
         }
     }
 
@@ -146,17 +136,16 @@ public final class ItemRarityHelper {
             return false;
         }
 
-        CompoundTag tag = stack.getOrCreateTag();
         boolean changed = false;
-        ItemRarityTier rarity = ItemRarityTier.byId(tag.getString(RARITY_TAG));
+        ItemRarityTier rarity = getRarity(stack).orElse(ItemRarityTier.COMMON);
 
-        if (!tag.contains(EnchantmentSlotHelper.ENCHANTMENT_SLOT_COUNT_TAG, Tag.TAG_INT)) {
-            tag.putInt(EnchantmentSlotHelper.ENCHANTMENT_SLOT_COUNT_TAG, rollEnchantSlots(rarity, random));
+        if (!stack.has(PBMDataComponents.ENCHANT_SLOT_COUNT.get())) {
+            stack.set(PBMDataComponents.ENCHANT_SLOT_COUNT.get(), rollEnchantSlots(rarity, random));
             changed = true;
         }
 
-        if (!tag.contains(GemSlotHelper.GEM_SLOT_COUNT_TAG, Tag.TAG_INT)) {
-            tag.putInt(GemSlotHelper.GEM_SLOT_COUNT_TAG, rollGemSlots(rarity, random));
+        if (!stack.has(PBMDataComponents.GEM_SLOT_COUNT.get())) {
+            stack.set(PBMDataComponents.GEM_SLOT_COUNT.get(), rollGemSlots(rarity, random));
             changed = true;
         }
 
