@@ -7,31 +7,31 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 public class HammerPlatingRecipe extends CustomRecipe {
     private static final TagKey<Item> SMITHHAMMERS_TAG =
-            ItemTags.create(new ResourceLocation(ProjectBabylonMaterials.MODID, "smithhammers"));
+            ItemTags.create(ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "smithhammers"));
     private static final int HAMMER_DAMAGE_PER_CRAFT = 25;
 
-    public HammerPlatingRecipe(ResourceLocation recipeId, CraftingBookCategory category) {
-        super(recipeId, category);
+    public HammerPlatingRecipe(CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
-    public boolean matches(CraftingContainer container, Level level) {
+    public boolean matches(CraftingInput input, Level level) {
         boolean hasHammer = false;
         boolean hasSupportedIngot = false;
 
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack stack = input.getItem(i);
             if (stack.isEmpty()) {
                 continue;
             }
@@ -59,9 +59,9 @@ public class HammerPlatingRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer container, net.minecraft.core.RegistryAccess registryAccess) {
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
+    public ItemStack assemble(CraftingInput input, net.minecraft.core.HolderLookup.Provider registries) {
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack stack = input.getItem(i);
             if (stack.isEmpty() || stack.is(SMITHHAMMERS_TAG)) {
                 continue;
             }
@@ -76,11 +76,11 @@ public class HammerPlatingRecipe extends CustomRecipe {
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingContainer container) {
-        NonNullList<ItemStack> remaining = NonNullList.withSize(container.getContainerSize(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+        NonNullList<ItemStack> remaining = NonNullList.withSize(input.size(), ItemStack.EMPTY);
 
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack stack = input.getItem(i);
             if (stack.isEmpty() || !stack.is(SMITHHAMMERS_TAG)) {
                 continue;
             }

@@ -6,26 +6,25 @@ import com.rave.projectbabylonmaterials.item.gem.GemItem;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityTier;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 public class GemDustRecipe extends CustomRecipe {
-    public GemDustRecipe(ResourceLocation recipeId, CraftingBookCategory category) {
-        super(recipeId, category);
+    public GemDustRecipe(CraftingBookCategory category) {
+        super(category);
     }
 
     @Override
-    public boolean matches(CraftingContainer container, Level level) {
+    public boolean matches(CraftingInput input, Level level) {
         boolean hasMortar = false;
         boolean hasGem = false;
 
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack stack = input.getItem(i);
             if (stack.isEmpty()) {
                 continue;
             }
@@ -53,9 +52,9 @@ public class GemDustRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer container, net.minecraft.core.RegistryAccess registryAccess) {
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
+    public ItemStack assemble(CraftingInput input, net.minecraft.core.HolderLookup.Provider registries) {
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack stack = input.getItem(i);
             if (stack.getItem() instanceof GemItem) {
                 return new ItemStack(PBMItems.GEM_DUST.get(), getDustCount(stack));
             }
@@ -65,10 +64,10 @@ public class GemDustRecipe extends CustomRecipe {
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingContainer container) {
-        NonNullList<ItemStack> remaining = NonNullList.withSize(container.getContainerSize(), ItemStack.EMPTY);
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack stack = container.getItem(i);
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+        NonNullList<ItemStack> remaining = NonNullList.withSize(input.size(), ItemStack.EMPTY);
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack stack = input.getItem(i);
             if (stack.hasCraftingRemainingItem()) {
                 remaining.set(i, stack.getCraftingRemainingItem());
             }
