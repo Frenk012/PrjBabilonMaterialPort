@@ -6,15 +6,16 @@ import com.rave.projectbabylonmaterials.config.PBMClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.LayeredDraw;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.fml.ModList;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public final class CombatStatsOverlay {
     private static Method aresGetHotbarTypeMethod;
     private static Method aresIsOffhandEnabledMethod;
 
-    public static final IGuiOverlay HUD = (gui, guiGraphics, partialTick, screenWidth, screenHeight) -> {
+    public static final LayeredDraw.Layer HUD = (guiGraphics, deltaTracker) -> {
         Minecraft minecraft = Minecraft.getInstance();
         if (!PBMClientConfig.showCustomCombatHud()) {
             return;
@@ -66,12 +67,14 @@ public final class CombatStatsOverlay {
             return;
         }
 
+        int screenWidth = guiGraphics.guiWidth();
+        int screenHeight = guiGraphics.guiHeight();
         Font font = minecraft.font;
         List<Row> rows = new ArrayList<>();
         rows.add(new Row(ARMOR_ICON, formatValue(minecraft.player.getAttributeValue(Attributes.ARMOR))));
         rows.add(new Row(TOUGHNESS_ICON, formatValue(minecraft.player.getAttributeValue(Attributes.ARMOR_TOUGHNESS))));
 
-        Attribute magicArmorAttribute = getMagicArmorAttribute();
+        Holder<Attribute> magicArmorAttribute = getMagicArmorAttribute();
         if (magicArmorAttribute != null) {
             rows.add(new Row(MAGIC_ARMOR_ICON, formatValue(minecraft.player.getAttributeValue(magicArmorAttribute))));
         }
@@ -229,7 +232,7 @@ public final class CombatStatsOverlay {
                 return false;
             }
 
-            ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
             if (itemId == null || !ARMORS_NAMESPACE.equals(itemId.getNamespace()) || !itemId.getPath().startsWith(DRAGONSTEEL_PREFIX)) {
                 return false;
             }
@@ -238,11 +241,11 @@ public final class CombatStatsOverlay {
         return armorPieces == 4;
     }
 
-    private static Attribute getMagicArmorAttribute() {
+    private static Holder<Attribute> getMagicArmorAttribute() {
         if (!ModList.get().isLoaded("irons_spellbooks")) {
             return null;
         }
-        return ForgeRegistries.ATTRIBUTES.getValue(SPELL_RESIST_ATTRIBUTE_ID);
+        return BuiltInRegistries.ATTRIBUTE.getHolder(SPELL_RESIST_ATTRIBUTE_ID).orElse(null);
     }
 
     private static String formatValue(double value) {

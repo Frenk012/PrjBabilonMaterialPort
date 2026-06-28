@@ -1,16 +1,5 @@
 package com.rave.projectbabylonmaterials.client.photon;
 
-import com.lowdragmc.photon.client.fx.IEffect;
-import com.lowdragmc.lowdraglib.utils.GradientColor;
-import com.lowdragmc.photon.client.gameobject.emitter.data.number.color.Gradient;
-import com.lowdragmc.photon.client.gameobject.emitter.data.VelocityOverLifetimeSetting;
-import com.lowdragmc.photon.client.gameobject.emitter.data.material.TextureMaterial;
-import com.lowdragmc.photon.client.gameobject.emitter.data.number.NumberFunction;
-import com.lowdragmc.photon.client.gameobject.emitter.data.number.NumberFunction3;
-import com.lowdragmc.photon.client.gameobject.emitter.data.shape.Cone;
-import com.lowdragmc.photon.client.gameobject.emitter.data.shape.Dot;
-import com.lowdragmc.photon.client.gameobject.emitter.particle.ParticleConfig;
-import com.lowdragmc.photon.client.gameobject.emitter.particle.ParticleEmitter;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -20,18 +9,24 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod.EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+// TODO(port): Photon2 (mc1.21.1) + LDLib2 replaced the programmatic emitter API this helper relied on.
+// The old path (build a ParticleEmitter/ParticleConfig and call ParticleEmitter.emmit(IEffect, pos, rot, scale))
+// is gone: IEffect was removed, ParticleConfig.material and the renderer bloom settings were removed,
+// GradientColor moved to com.lowdragmc.lowdraglib2.math (with a provider-aware NBT API), and effects are now
+// spawned through FX/FXRuntime/FXEffectExecutor (see com.lowdragmc.photon.client.fx.*). All public methods and
+// the per-effect geometry below are preserved; the actual emission is funneled through EmitterHandle.emmit and
+// is currently a no-op pending re-implementation against the Photon2 FX runtime.
+@EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class PBMPhotonEffectHelper {
     private static final Map<Integer, OrbitState> ACTIVE_DRAGON_DESCEND_CASTS = new ConcurrentHashMap<>();
     private static final Map<Integer, OrbitState> ACTIVE_GLACIER_CASTS = new ConcurrentHashMap<>();
@@ -265,7 +260,7 @@ public final class PBMPhotonEffectHelper {
 
         Vec3 origin = projectile.position().subtract(normalized.scale(0.35D)).add(0.0D, 0.15D, 0.0D);
         Quaternionf breathRotation = quaternionFromDirection(breathDirection);
-        ParticleEmitter breathEmitter = createBreathEmitter();
+        EmitterHandle breathEmitter = createBreathEmitter();
         breathEmitter.emmit(effect, toVector(origin), breathRotation, UNIT_SCALE);
 
         if ((projectile.tickCount % TRAIL_VISUAL_INTERVAL) != 0) {
@@ -582,11 +577,7 @@ public final class PBMPhotonEffectHelper {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
+    public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
         if (level == null) {
@@ -917,7 +908,7 @@ public final class PBMPhotonEffectHelper {
         double x = entity.getX() + Mth.cos(angle) * radius;
         double y = entity.getY() + height;
         double z = entity.getZ() + Mth.sin(angle) * radius;
-        ParticleEmitter emitter = createTrailEmitter(PORTAL_TEXTURE, size, lifetime, color, vx, vy, vz, rollPerTickDegrees, startRollDegrees);
+        EmitterHandle emitter = createTrailEmitter(PORTAL_TEXTURE, size, lifetime, color, vx, vy, vz, rollPerTickDegrees, startRollDegrees);
         emitter.emmit(effect, new Vector3f((float) x, (float) y, (float) z), IDENTITY_ROTATION, UNIT_SCALE);
     }
 
@@ -936,7 +927,7 @@ public final class PBMPhotonEffectHelper {
             double vy = ((i % 4) - 1.5D) * 0.03D;
             float startRollDegrees = (float) Math.toDegrees(angle);
             float rollPerTickDegrees = ((i & 1) == 0) ? 42.0F : -42.0F;
-            ParticleEmitter emitter = createTrailEmitter(PORTAL_TEXTURE, 0.34F, 11, 0xFFFFFFFF, vx, vy, vz, rollPerTickDegrees, startRollDegrees);
+            EmitterHandle emitter = createTrailEmitter(PORTAL_TEXTURE, 0.34F, 11, 0xFFFFFFFF, vx, vy, vz, rollPerTickDegrees, startRollDegrees);
             emitter.emmit(effect, new Vector3f((float) entity.getX(), (float) baseY, (float) entity.getZ()), IDENTITY_ROTATION, UNIT_SCALE);
         }
     }
@@ -964,132 +955,39 @@ public final class PBMPhotonEffectHelper {
                 .emmit(effect, toVector(center.add(right.scale(-0.75D))), IDENTITY_ROTATION, UNIT_SCALE);
     }
 
-    private static ParticleEmitter createBreathEmitter() {
-        ParticleEmitter emitter = new ParticleEmitter();
-        ParticleConfig config = emitter.config;
-
-        emitter.setName("dragon_descend_breath");
-        config.setDuration(1);
-        config.setLooping(false);
-        config.setMaxParticles(BREATH_PARTICLE_COUNT);
-        config.setStartLifetime(NumberFunction.constant(10));
-        config.setStartSpeed(NumberFunction.constant(0.9F));
-        config.setStartSize(new NumberFunction3(0.42F, 0.42F, 0.42F));
-        config.setStartRotation(new NumberFunction3(0.0F, 0.0F, 0.0F));
-        config.setStartColor(NumberFunction.color(0xFFDBC3FF));
-        config.emission.setEmissionRate(NumberFunction.constant(0.0F));
-
-        var burst = new com.lowdragmc.photon.client.gameobject.emitter.data.EmissionSetting.Burst();
-        burst.time = 0;
-        burst.cycles = 1;
-        burst.interval = 1;
-        burst.probability = 1.0F;
-        burst.setCount(NumberFunction.constant(BREATH_PARTICLE_COUNT));
-        config.emission.getBursts().add(burst);
-
-        Cone cone = new Cone();
-        cone.setRadius(0.2F);
-        cone.setRadiusThickness(0.0F);
-        cone.setAngle(22.0F);
-        cone.setArc(360.0F);
-        config.shape.setShape(cone);
-        config.shape.setPosition(new NumberFunction3(0.0F, 0.0F, 0.0F));
-
-        applySharedMaterial(config, PORTAL_TEXTURE, 0xFFDBC3FF);
-
-        config.velocityOverLifetime.setEnable(true);
-        config.velocityOverLifetime.setOrbitalMode(VelocityOverLifetimeSetting.OrbitalMode.FixedVelocity);
-        config.velocityOverLifetime.setLinear(new NumberFunction3(0.0F, 0.0F, 0.0F));
-        config.velocityOverLifetime.setSpeedModifier(NumberFunction.constant(0.92F));
-
-        config.rotationOverLifetime.setEnable(true);
-        config.rotationOverLifetime.setRoll(NumberFunction.constant(36.0F));
-
-        return emitter;
+    private static EmitterHandle createBreathEmitter() {
+        // TODO(port): re-author the dragon-descend breath cone emitter against the Photon2 FX runtime.
+        return new EmitterHandle(PORTAL_TEXTURE, 0xFFDBC3FF);
     }
 
-    private static ParticleEmitter createTrailEmitter(ResourceLocation texture, float size, int lifetime, int color,
-                                                      double vx, double vy, double vz, float rollPerTickDegrees) {
+    private static EmitterHandle createTrailEmitter(ResourceLocation texture, float size, int lifetime, int color,
+                                                    double vx, double vy, double vz, float rollPerTickDegrees) {
         return createTrailEmitter(texture, size, lifetime, color, vx, vy, vz, rollPerTickDegrees, 0.0F);
     }
 
-    private static ParticleEmitter createTrailEmitterNoBloom(ResourceLocation texture, float size, int lifetime, int color,
-                                                             double vx, double vy, double vz, float rollPerTickDegrees) {
+    private static EmitterHandle createTrailEmitterNoBloom(ResourceLocation texture, float size, int lifetime, int color,
+                                                           double vx, double vy, double vz, float rollPerTickDegrees) {
         return createTrailEmitterNoBloom(texture, size, lifetime, color, vx, vy, vz, rollPerTickDegrees, 0.0F);
     }
 
-    private static ParticleEmitter createTrailEmitterNoBloom(ResourceLocation texture, float size, int lifetime, int color,
-                                                             double vx, double vy, double vz, float rollPerTickDegrees,
-                                                             float startRollDegrees) {
+    private static EmitterHandle createTrailEmitterNoBloom(ResourceLocation texture, float size, int lifetime, int color,
+                                                           double vx, double vy, double vz, float rollPerTickDegrees,
+                                                           float startRollDegrees) {
         return createTrailEmitter(texture, size, lifetime, color, vx, vy, vz, rollPerTickDegrees, startRollDegrees, false);
     }
 
-    private static ParticleEmitter createTrailEmitter(ResourceLocation texture, float size, int lifetime, int color,
-                                                      double vx, double vy, double vz, float rollPerTickDegrees,
-                                                      float startRollDegrees) {
+    private static EmitterHandle createTrailEmitter(ResourceLocation texture, float size, int lifetime, int color,
+                                                    double vx, double vy, double vz, float rollPerTickDegrees,
+                                                    float startRollDegrees) {
         return createTrailEmitter(texture, size, lifetime, color, vx, vy, vz, rollPerTickDegrees, startRollDegrees, true);
     }
 
-    private static ParticleEmitter createTrailEmitter(ResourceLocation texture, float size, int lifetime, int color,
-                                                      double vx, double vy, double vz, float rollPerTickDegrees,
-                                                      float startRollDegrees, boolean bloom) {
-        ParticleEmitter emitter = new ParticleEmitter();
-        ParticleConfig config = emitter.config;
-
-        emitter.setName("projectile_trail");
-        config.setDuration(1);
-        config.setLooping(false);
-        config.setMaxParticles(1);
-        config.setStartLifetime(NumberFunction.constant(lifetime));
-        config.setStartSpeed(NumberFunction.constant(0.0F));
-        config.setStartSize(new NumberFunction3(size, size, size));
-        config.setStartRotation(new NumberFunction3(startRollDegrees, 0.0F, 0.0F));
-        config.setStartColor(NumberFunction.color(color));
-        config.emission.setEmissionRate(NumberFunction.constant(0.0F));
-
-        var burst = new com.lowdragmc.photon.client.gameobject.emitter.data.EmissionSetting.Burst();
-        burst.time = 0;
-        burst.cycles = 1;
-        burst.interval = 1;
-        burst.probability = 1.0F;
-        burst.setCount(NumberFunction.constant(1));
-        config.emission.getBursts().add(burst);
-
-        config.shape.setShape(new Dot());
-        config.shape.setPosition(new NumberFunction3(0.0F, 0.0F, 0.0F));
-
-        applySharedMaterial(config, texture, color, bloom);
-
-        config.velocityOverLifetime.setEnable(true);
-        config.velocityOverLifetime.setOrbitalMode(VelocityOverLifetimeSetting.OrbitalMode.FixedVelocity);
-        config.velocityOverLifetime.setLinear(new NumberFunction3(vx * 20.0D, vy * 20.0D, vz * 20.0D));
-        config.velocityOverLifetime.setSpeedModifier(NumberFunction.constant(1.0F));
-
-        config.colorOverLifetime.setEnable(true);
-        Gradient fadeGradient = new Gradient();
-        fadeGradient.getGradientColor().deserializeNBT(new GradientColor(color, color & 0x00FFFFFF).serializeNBT());
-        config.colorOverLifetime.setColor(fadeGradient);
-
-        config.rotationOverLifetime.setEnable(true);
-        config.rotationOverLifetime.setRoll(NumberFunction.constant(rollPerTickDegrees));
-
-        return emitter;
-    }
-    private static void applySharedMaterial(ParticleConfig config, ResourceLocation texture, int color) {
-        applySharedMaterial(config, texture, color, true);
-    }
-
-    private static void applySharedMaterial(ParticleConfig config, ResourceLocation texture, int color, boolean bloom) {
-        config.material.setCull(false);
-        config.material.setDepthMask(false);
-        config.material.setDepthTest(true);
-        TextureMaterial textureMaterial = new TextureMaterial(texture);
-        textureMaterial.discardThreshold = 0.02F;
-        config.material.setMaterial(textureMaterial);
-        config.renderer.setBloomEffect(bloom);
-        if (bloom) {
-            config.renderer.setBloomColor(color);
-        }
+    private static EmitterHandle createTrailEmitter(ResourceLocation texture, float size, int lifetime, int color,
+                                                    double vx, double vy, double vz, float rollPerTickDegrees,
+                                                    float startRollDegrees, boolean bloom) {
+        // TODO(port): rebuild this single-particle trail emitter (size/lifetime/velocity/roll/bloom) on the
+        // Photon2 FX runtime; the legacy ParticleEmitter/ParticleConfig build path no longer exists.
+        return new EmitterHandle(texture, color);
     }
 
     private static int withAlpha(int rgb, int alpha) {
@@ -1117,10 +1015,17 @@ public final class PBMPhotonEffectHelper {
         return new Vector3f((float) vec3.x, (float) vec3.y, (float) vec3.z);
     }
 
-    private record StaticLevelEffect(Level level) implements IEffect {
-        @Override
-        public Level getLevel() {
-            return this.level;
+    private record StaticLevelEffect(Level level) {
+    }
+
+    /**
+     * Thin stand-in for the removed Photon emitter handle. It preserves the
+     * {@code emitter.emmit(effect, position, rotation, scale)} call shape used throughout this class so the
+     * per-effect geometry compiles unchanged while the Photon2 FX emission path is re-implemented.
+     */
+    private record EmitterHandle(ResourceLocation texture, int color) {
+        private void emmit(StaticLevelEffect effect, Vector3f position, Quaternionf rotation, Vector3f scale) {
+            // TODO(port): spawn into the Photon2 FX runtime (FXHelper/FXRuntime + IEffectExecutor). No-op for now.
         }
     }
 

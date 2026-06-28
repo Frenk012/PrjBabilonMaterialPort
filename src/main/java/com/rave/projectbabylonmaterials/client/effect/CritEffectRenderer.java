@@ -9,18 +9,18 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public final class CritEffectRenderer {
 
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
@@ -43,8 +43,8 @@ public final class CritEffectRenderer {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || ACTIVE_EFFECTS.isEmpty()) {
+    public static void onClientTick(ClientTickEvent.Post event) {
+        if (ACTIVE_EFFECTS.isEmpty()) {
             return;
         }
 
@@ -102,13 +102,12 @@ public final class CritEffectRenderer {
 
     private static void addVertex(VertexConsumer vertexConsumer, Matrix4f matrix, float x, float y,
                                   float u, float v) {
-        vertexConsumer.vertex(matrix, x, y, 0.0F)
-                .color(255, 255, 255, 255)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(15728880)
-                .normal(0.0F, 0.0F, 1.0F)
-                .endVertex();
+        vertexConsumer.addVertex(matrix, x, y, 0.0F)
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(15728880)
+                .setNormal(0.0F, 0.0F, 1.0F);
     }
 
     private static final class CritEffectInstance {

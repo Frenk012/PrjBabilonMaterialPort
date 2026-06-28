@@ -2,23 +2,23 @@ package com.rave.projectbabylonmaterials.client.overlay;
 
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.config.PBMClientConfig;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 
-@Mod.EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ProjectBabylonMaterials.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public final class CombatStatsOverlayEvents {
     private CombatStatsOverlayEvents() {
     }
 
     @SubscribeEvent
-    public static void onRenderGuiOverlayPre(RenderGuiOverlayEvent.Pre event) {
+    public static void onRenderGuiLayerPre(RenderGuiLayerEvent.Pre event) {
         if (!PBMClientConfig.hideVanillaArmorHud()) {
             return;
         }
-        if (event.getOverlay() == VanillaGuiOverlay.ARMOR_LEVEL.type()) {
+        if (event.getName().equals(VanillaGuiLayers.ARMOR_LEVEL)) {
             event.setCanceled(true);
         }
     }
