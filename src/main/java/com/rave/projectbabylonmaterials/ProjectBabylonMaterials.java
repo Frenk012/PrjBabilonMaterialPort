@@ -1,6 +1,8 @@
 package com.rave.projectbabylonmaterials;
 
 import com.mojang.logging.LogUtils;
+import com.rave.projectbabylonmaterials.balance.PBMBalanceRegistries;
+import com.rave.projectbabylonmaterials.balance.PBMBalances;
 import com.rave.projectbabylonmaterials.config.PBMClientConfig;
 import com.rave.projectbabylonmaterials.config.PBMServerConfig;
 import com.rave.projectbabylonmaterials.handler.CritDamageHandler;
@@ -50,11 +52,13 @@ public class ProjectBabylonMaterials {
 
         // NeoForge payload registration happens on the mod bus during RegisterPayloadHandlersEvent.
         modBus.addListener(PBNetwork::register);
+        modBus.addListener(PBMBalanceRegistries::registerDataPackRegistries);
 
         IEventBus gameBus = NeoForge.EVENT_BUS;
         gameBus.register(ArmorSetBonusManager.class);
         gameBus.register(CritDamageHandler.class);
         gameBus.register(GemEffectHandler.class);
+        gameBus.register(PBMBalances.class);
         gameBus.register(ItemRarityHandler.class);
         gameBus.register(LivingEntityHealthHandler.class);
         gameBus.register(PlayerHealthHandler.class);

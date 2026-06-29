@@ -4,6 +4,8 @@ import com.rave.projectbabylonmaterials.gem.GemApplication;
 import com.rave.projectbabylonmaterials.gem.GemUpgradeHelper;
 import com.rave.projectbabylonmaterials.init.PBMDataComponents;
 import com.rave.projectbabylonmaterials.init.PBMItems;
+import com.rave.projectbabylonmaterials.balance.PBMBalances;
+import com.rave.projectbabylonmaterials.balance.RarityBalance;
 import com.rave.projectbabylonmaterials.item.gem.GemItem;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -153,6 +155,16 @@ public final class ItemRarityHelper {
     }
 
     private static int rollEnchantSlots(ItemRarityTier rarity, RandomSource random) {
+        Optional<RarityBalance> balance = PBMBalances.rarity(rarity);
+        if (balance.isPresent()) {
+            RarityBalance values = balance.get();
+            int slots = values.baseEnchantSlots();
+            if (values.enchantBonusChance() > 0 && rollPercent(random, values.enchantBonusChance())) {
+                slots += 1;
+            }
+            return slots;
+        }
+
         return switch (rarity) {
             case COMMON -> 0;
             case UNCOMMON -> 1;
@@ -163,6 +175,16 @@ public final class ItemRarityHelper {
     }
 
     private static int rollGemSlots(ItemRarityTier rarity, RandomSource random) {
+        Optional<RarityBalance> balance = PBMBalances.rarity(rarity);
+        if (balance.isPresent()) {
+            RarityBalance values = balance.get();
+            int slots = values.baseGemSlots();
+            if (values.gemSlotBonusChance() > 0 && rollPercent(random, values.gemSlotBonusChance())) {
+                slots += 1;
+            }
+            return slots;
+        }
+
         return switch (rarity) {
             case COMMON, UNCOMMON -> 0;
             case RARE -> rollPercent(random, 35) ? 1 : 0;

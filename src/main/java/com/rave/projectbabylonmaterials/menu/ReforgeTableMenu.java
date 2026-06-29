@@ -1,5 +1,8 @@
 package com.rave.projectbabylonmaterials.menu;
 
+import com.rave.projectbabylonmaterials.balance.PBMBalances;
+import com.rave.projectbabylonmaterials.balance.RarityBalance;
+
 import com.rave.projectbabylonmaterials.block.entity.ReforgeTableBlockEntity;
 import com.rave.projectbabylonmaterials.gem.GemSlotHelper;
 import com.rave.projectbabylonmaterials.gem.GemType;
@@ -176,14 +179,14 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
             spentXp += getSocketXp();
             processedOperation = true;
             outputChanged = true;
-        } else if (!gemStack.isEmpty() && reforgeRecipeOptional.isEmpty()) {
+        } else if (!gemStack.isEmpty()) {
             handleSocketFailureMessage(player, centerStack, gemStack);
         }
 
         if (reforgeRecipeOptional.isPresent()) {
             ItemReforgeHelper.ReforgeRecipe recipe = reforgeRecipeOptional.get();
             ItemStack materialStack = this.container.getItem(ReforgeTableBlockEntity.SLOT_LEFT_INPUT);
-            materialStack.shrink(ItemReforgeHelper.REQUIRED_MATERIAL_COUNT);
+            materialStack.shrink(recipe.materialCount());
             spentXp += recipe.requiredXp();
             processedOperation = true;
 
@@ -252,13 +255,13 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
             return 0;
         }
 
-        return switch (rarityOptional.get()) {
+        return PBMBalances.rarity(rarityOptional.get()).map(RarityBalance::socketXp).orElseGet(() -> switch (rarityOptional.get()) {
             case COMMON -> 1;
             case UNCOMMON -> 2;
             case RARE -> 3;
             case EPIC -> 4;
             case LEGENDARY -> 5;
-        };
+        });
     }
 
     private boolean canSocketCurrentItem() {

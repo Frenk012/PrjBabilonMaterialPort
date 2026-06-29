@@ -1,5 +1,6 @@
 package com.rave.projectbabylonmaterials.gem;
 
+import com.rave.projectbabylonmaterials.balance.PBMBalances;
 import com.rave.projectbabylonmaterials.init.PBMDataComponents;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityHelper;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +31,7 @@ public final class GemSlotHelper {
             return 0;
         }
 
-        return Math.max(0, Math.min(MAX_GEM_SLOTS, count));
+        return Math.max(0, Math.min(maxGemSlots(), count));
     }
 
     public static boolean hasAnyGemSlots(ItemStack stack) {
@@ -120,6 +121,10 @@ public final class GemSlotHelper {
     }
 
     public static int getVisibleSlotCount(ItemStack stack) {
-        return Math.max(getGemSlotCount(stack), Math.min(MAX_GEM_SLOTS, getSocketedGems(stack).size()));
+        return Math.max(getGemSlotCount(stack), Math.min(maxGemSlots(), getSocketedGems(stack).size()));
+    }
+
+    private static int maxGemSlots() {
+        return PBMBalances.maxGemSlots(MAX_GEM_SLOTS);
     }
 }

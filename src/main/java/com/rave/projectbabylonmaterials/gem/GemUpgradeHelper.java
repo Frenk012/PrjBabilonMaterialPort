@@ -1,5 +1,7 @@
 package com.rave.projectbabylonmaterials.gem;
 
+import com.rave.projectbabylonmaterials.balance.PBMBalances;
+import com.rave.projectbabylonmaterials.balance.RarityBalance;
 import com.rave.projectbabylonmaterials.init.PBMDataComponents;
 import com.rave.projectbabylonmaterials.init.PBMItems;
 import com.rave.projectbabylonmaterials.item.gem.GemItem;
@@ -31,7 +33,7 @@ public final class GemUpgradeHelper {
         }
 
         ItemRarityTier rarity = ItemRarityHelper.getRarity(stack).orElse(ItemRarityTier.COMMON);
-        stack.set(PBMDataComponents.GEM_UPGRADE_ATTEMPTS.get(), rarity == ItemRarityTier.LEGENDARY ? 0 : DEFAULT_UPGRADE_ATTEMPTS);
+        stack.set(PBMDataComponents.GEM_UPGRADE_ATTEMPTS.get(), getMaxAttempts(rarity));
         return true;
     }
 
@@ -42,7 +44,7 @@ public final class GemUpgradeHelper {
 
         Integer attempts = stack.get(PBMDataComponents.GEM_UPGRADE_ATTEMPTS.get());
         if (attempts == null) {
-            return ItemRarityHelper.getRarity(stack).orElse(ItemRarityTier.COMMON) == ItemRarityTier.LEGENDARY ? 0 : DEFAULT_UPGRADE_ATTEMPTS;
+            return getMaxAttempts(ItemRarityHelper.getRarity(stack).orElse(ItemRarityTier.COMMON));
         }
 
         return Math.max(0, attempts);
@@ -112,7 +114,17 @@ public final class GemUpgradeHelper {
         };
     }
 
+    private static int getMaxAttempts(ItemRarityTier rarity) {
+        return PBMBalances.rarity(rarity).map(RarityBalance::maxUpgradeAttempts)
+                .orElse(rarity == ItemRarityTier.LEGENDARY ? 0 : DEFAULT_UPGRADE_ATTEMPTS);
+    }
+
     private static Item getRequiredMaterial(ItemRarityTier targetRarity) {
+        Optional<Item> material = PBMBalances.rarity(targetRarity).flatMap(RarityBalance::material);
+        if (material.isPresent()) {
+            return material.get();
+        }
+
         return switch (targetRarity) {
             case UNCOMMON -> PBMItems.PURE_TEAR.get();
             case RARE -> PBMItems.ANCIENT_AMBER.get();
@@ -123,33 +135,33 @@ public final class GemUpgradeHelper {
     }
 
     private static int getRequiredDust(ItemRarityTier targetRarity) {
-        return switch (targetRarity) {
+        return PBMBalances.rarity(targetRarity).map(RarityBalance::requiredDust).orElseGet(() -> switch (targetRarity) {
             case UNCOMMON -> 2;
             case RARE -> 4;
             case EPIC -> 6;
             case LEGENDARY -> 8;
             case COMMON -> 0;
-        };
+        });
     }
 
     private static int getRequiredXp(ItemRarityTier targetRarity) {
-        return switch (targetRarity) {
+        return PBMBalances.rarity(targetRarity).map(RarityBalance::requiredXp).orElseGet(() -> switch (targetRarity) {
             case UNCOMMON -> 3;
             case RARE -> 5;
             case EPIC -> 7;
             case LEGENDARY -> 10;
             case COMMON -> 0;
-        };
+        });
     }
 
     private static int getSuccessChance(ItemRarityTier currentRarity) {
-        return switch (currentRarity) {
+        return PBMBalances.rarity(currentRarity).map(RarityBalance::successChance).orElseGet(() -> switch (currentRarity) {
             case COMMON -> 75;
             case UNCOMMON -> 55;
             case RARE -> 35;
             case EPIC -> 20;
             case LEGENDARY -> 0;
-        };
+        });
     }
 
     public record UpgradeRecipe(ItemRarityTier nextRarity, Item requiredMaterial, int requiredDust, int requiredXp, int successChance) {

@@ -1,5 +1,8 @@
 package com.rave.projectbabylonmaterials.menu;
 
+import com.rave.projectbabylonmaterials.balance.PBMBalances;
+import com.rave.projectbabylonmaterials.balance.RarityBalance;
+
 import com.rave.projectbabylonmaterials.block.entity.RefinementTableBlockEntity;
 import com.rave.projectbabylonmaterials.gem.GemSlotHelper;
 import com.rave.projectbabylonmaterials.init.PBMMenus;
@@ -221,11 +224,11 @@ public class RefinementTableMenu extends AbstractContainerMenu {
             return 0;
         }
 
-        return switch (rarityOptional.get()) {
+        return PBMBalances.rarity(rarityOptional.get()).map(RarityBalance::extractionXp).orElseGet(() -> switch (rarityOptional.get()) {
             case COMMON, UNCOMMON -> 1;
             case RARE -> 2;
             case EPIC -> 3;
             case LEGENDARY -> 4;
-        };
+        });
     }
 }

@@ -2,6 +2,7 @@ package com.rave.projectbabylonmaterials.gem;
 
 import com.rave.projectbabylonmaterials.item.gem.GemItem;
 import com.rave.projectbabylonmaterials.rarity.ItemRarityTier;
+import com.rave.projectbabylonmaterials.balance.PBMBalances;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -80,13 +81,13 @@ public enum GemType {
     }
 
     public double getValue(ItemRarityTier rarity) {
-        return switch (rarity) {
+        return PBMBalances.gem(this).map(balance -> balance.value(rarity)).orElseGet(() -> switch (rarity) {
             case COMMON -> commonValue;
             case UNCOMMON -> uncommonValue;
             case RARE -> rareValue;
             case EPIC -> epicValue;
             case LEGENDARY -> legendaryValue;
-        };
+        });
     }
 
     public Component createDescription(ItemRarityTier rarity) {
@@ -118,6 +119,15 @@ public enum GemType {
             return Optional.of(gemItem.getGemType());
         }
         return Optional.empty();
+    }
+
+    public static GemType byRegistryNameOrNull(String registryName) {
+        for (GemType type : values()) {
+            if (type.registryName.equals(registryName)) {
+                return type;
+            }
+        }
+        return null;
     }
 
     private static String formatPercent(double value) {

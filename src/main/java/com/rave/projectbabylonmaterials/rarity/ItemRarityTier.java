@@ -1,5 +1,7 @@
 package com.rave.projectbabylonmaterials.rarity;
 
+import com.rave.projectbabylonmaterials.balance.PBMBalances;
+import com.rave.projectbabylonmaterials.balance.RarityBalance;
 import net.minecraft.ChatFormatting;
 
 public enum ItemRarityTier {
@@ -32,23 +34,28 @@ public enum ItemRarityTier {
     }
 
     public int getRollWeight() {
-        return rollWeight;
+        return PBMBalances.rarity(this).map(RarityBalance::rollWeight).orElse(rollWeight);
     }
 
     public int getBaseEnchantSlots() {
-        return baseEnchantSlots;
+        return PBMBalances.rarity(this).map(RarityBalance::baseEnchantSlots).orElse(baseEnchantSlots);
     }
 
     public int getBaseGemSlots() {
-        return baseGemSlots;
+        return PBMBalances.rarity(this).map(RarityBalance::baseGemSlots).orElse(baseGemSlots);
     }
 
     public static ItemRarityTier byId(String id) {
+        ItemRarityTier tier = byIdOrNull(id);
+        return tier != null ? tier : COMMON;
+    }
+
+    public static ItemRarityTier byIdOrNull(String id) {
         for (ItemRarityTier tier : values()) {
             if (tier.id.equals(id)) {
                 return tier;
             }
         }
-        return COMMON;
+        return null;
     }
 }
