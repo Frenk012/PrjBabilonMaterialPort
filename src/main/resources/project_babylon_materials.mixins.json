@@ -16,10 +16,16 @@
     "AnvilMenuEnchantmentSlotsMixin",
     "ItemStackRarityNameMixin",
     "ItemStackEnchantableMixin",
-    "CrossbowItemDrawSpeedMixin"
+    "CrossbowItemDrawSpeedMixin",
+    "MinecraftGlowingMixin"
   ],
   "client": [
-    "AbstractContainerScreenAccessor"
+    "AbstractContainerScreenAccessor",
+    "AbstractTrailParticleMixin",
+    "HumanoidArmorLayerMixin",
+    "ItemInHandLayerMixin",
+    "PatchedItemInHandLayerMixin",
+    "WearableItemLayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

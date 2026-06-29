@@ -23,6 +23,10 @@ public final class PBAttributes {
             () -> new RangedAttribute("attribute.name.project_babylon_materials.crit_damage", 0.50D, 0.0D, 1024.0D)
                     .setSyncable(true));
 
+    public static final RegistryObject<Attribute> HEALING_STRENGTH = ATTRIBUTES.register("healing_strength",
+            () -> new RangedAttribute("attribute.name.project_babylon_materials.healing_strength", 1.0D, 0.0D, 1024.0D)
+                    .setSyncable(true));
+
     public static final RegistryObject<Attribute> RANGED_DRAW_SPEED = ATTRIBUTES.register("ranged_draw_speed",
             () -> new RangedAttribute("attribute.name.project_babylon_materials.ranged_draw_speed", 0.0D, 0.0D, 1024.0D)
                     .setSyncable(true));
@@ -39,6 +43,7 @@ public final class PBAttributes {
         for (EntityType<? extends net.minecraft.world.entity.LivingEntity> entityType : event.getTypes()) {
             event.add(entityType, CRIT_CHANCE.get());
             event.add(entityType, CRIT_DAMAGE.get());
+            event.add(entityType, HEALING_STRENGTH.get());
             event.add(entityType, RANGED_DRAW_SPEED.get());
         }
     }

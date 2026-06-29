@@ -3,6 +3,8 @@ package com.rave.projectbabylonmaterials.network;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.network.client.ClientboundCritEffectPacket;
 import com.rave.projectbabylonmaterials.network.client.ClientboundDragonsteelCooldownPacket;
+import com.rave.projectbabylonmaterials.network.client.ClientboundShadowFormAfterimagePacket;
+import com.rave.projectbabylonmaterials.network.client.ClientboundShadowFormStatePacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -36,6 +38,20 @@ public final class PBNetwork {
                 ClientboundDragonsteelCooldownPacket::encode,
                 ClientboundDragonsteelCooldownPacket::decode,
                 ClientboundDragonsteelCooldownPacket::handle
+        );
+        CHANNEL.registerMessage(
+                packetId++,
+                ClientboundShadowFormStatePacket.class,
+                ClientboundShadowFormStatePacket::encode,
+                ClientboundShadowFormStatePacket::decode,
+                ClientboundShadowFormStatePacket::handle
+        );
+        CHANNEL.registerMessage(
+                packetId++,
+                ClientboundShadowFormAfterimagePacket.class,
+                ClientboundShadowFormAfterimagePacket::encode,
+                ClientboundShadowFormAfterimagePacket::decode,
+                ClientboundShadowFormAfterimagePacket::handle
         );
     }
 }

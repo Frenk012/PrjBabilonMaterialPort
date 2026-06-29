@@ -9,11 +9,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.registries.ForgeRegistries;
 import java.util.UUID;
-public class UnstableEffect extends MobEffect {
+public class UnstableDebuff extends MobEffect {
     private static final ResourceLocation SPELL_RESIST_ATTRIBUTE_ID = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spell_resist");
     private static final UUID SPELL_RESIST_REDUCTION_UUID = UUID.fromString("f41bbbc7-b66e-4f26-9f1d-d7c9d08684a3");
     private static final double SPELL_RESIST_REDUCTION_PER_LEVEL = -0.15D;
-    public UnstableEffect() {
+    public UnstableDebuff() {
         super(MobEffectCategory.HARMFUL, 0xD6AF2C);
     }
     @Override

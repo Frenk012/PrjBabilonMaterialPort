@@ -12,6 +12,7 @@ import com.lowdragmc.photon.client.gameobject.emitter.data.shape.Dot;
 import com.lowdragmc.photon.client.gameobject.emitter.particle.ParticleConfig;
 import com.lowdragmc.photon.client.gameobject.emitter.particle.ParticleEmitter;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
+import com.rave.projectbabylonmaterials.client.shadow.ShadowFormClientState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
@@ -36,12 +37,20 @@ public final class PBMPhotonEffectHelper {
     private static final Map<Integer, OrbitState> ACTIVE_DRAGON_DESCEND_CASTS = new ConcurrentHashMap<>();
     private static final Map<Integer, OrbitState> ACTIVE_GLACIER_CASTS = new ConcurrentHashMap<>();
     private static final Map<Integer, OrbitState> ACTIVE_FIRE_STORM_CASTS = new ConcurrentHashMap<>();
+    private static final Map<Integer, OrbitState> ACTIVE_MAGICAL_VEILS = new ConcurrentHashMap<>();
+    private static final Map<Integer, OrbitState> ACTIVE_BASTION_FROST_AURAS = new ConcurrentHashMap<>();
+    private static final Map<Integer, OrbitState> ACTIVE_BASTION_RULE_AURAS = new ConcurrentHashMap<>();
     private static final Quaternionf IDENTITY_ROTATION = new Quaternionf();
     private static final Vector3f UNIT_SCALE = new Vector3f(1.0F, 1.0F, 1.0F);
     private static final ResourceLocation PORTAL_TEXTURE = texture("dragon_descend_spell.png");
+    private static final ResourceLocation PHANTOM_TEXTURE = texture("phantom_particle.png");
     private static final ResourceLocation HOLY_TEXTURE = texture("holy_particle.png");
     private static final ResourceLocation HEAL_TEXTURE = texture("heal_particle.png");
     private static final ResourceLocation ABSORPTION_TEXTURE = texture("absorption_particle.png");
+    private static final ResourceLocation MAGICAL_VEIL_TEXTURE = texture("magical_veil_particle.png");
+    private static final ResourceLocation SPECTRAL_TEXTURE_1 = texture("spectral_particle_1.png");
+    private static final ResourceLocation SPECTRAL_TEXTURE_2 = texture("spectral_particle_2.png");
+    private static final ResourceLocation LEAF_TEXTURE = texture("leaf_particle.png");
     private static final ResourceLocation SNOWFLAKE_TEXTURE = texture("snowflake_particle.png");
     private static final ResourceLocation SNOW_TEXTURE = texture("snow_particle.png");
     private static final ResourceLocation GOLDEN_TEXTURE = texture("golden_particle.png");
@@ -77,6 +86,8 @@ public final class PBMPhotonEffectHelper {
     private static final int FIRE_STORM_CAST_PARTICLES_PER_TICK = 8;
     private static final float FIRE_STORM_CAST_ROTATION_SPEED = 0.46F;
     private static final int FIRE_STORM_BURST_PARTICLE_COUNT = 22;
+    private static final int MAGICAL_VEIL_PARTICLES_PER_TICK = 6;
+    private static final float MAGICAL_VEIL_ROTATION_SPEED = 0.14F;
     private static final int TRAIL_VISUAL_INTERVAL = 2;
     private static final int TRAIL_VISUAL_LIFETIME = 60;
     private static final double TRAIL_HALF_WIDTH = 1.5D;
@@ -85,7 +96,7 @@ public final class PBMPhotonEffectHelper {
     }
 
     public static void startDragonDescendCast(Entity entity) {
-        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide || ShadowFormClientState.isConcealed(entity)) {
             return;
         }
 
@@ -110,7 +121,7 @@ public final class PBMPhotonEffectHelper {
     }
 
     public static void startGlacierCast(Entity entity) {
-        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide || ShadowFormClientState.isConcealed(entity)) {
             return;
         }
 
@@ -126,7 +137,7 @@ public final class PBMPhotonEffectHelper {
     }
 
     public static void startFireStormCast(Entity entity) {
-        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide || ShadowFormClientState.isConcealed(entity)) {
             return;
         }
 
@@ -150,6 +161,209 @@ public final class PBMPhotonEffectHelper {
         ACTIVE_FIRE_STORM_CASTS.remove(entity.getId());
     }
 
+    public static void startMagicalVeil(Entity entity) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide || ShadowFormClientState.isConcealed(entity)) {
+            return;
+        }
+
+        ACTIVE_MAGICAL_VEILS.put(entity.getId(), new OrbitState(entity.getId()));
+    }
+
+    public static void stopMagicalVeil(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        ACTIVE_MAGICAL_VEILS.remove(entity.getId());
+    }
+
+    public static void startBastionFrostAura(Entity entity, float radiusBlocks) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide || ShadowFormClientState.isConcealed(entity)) {
+            return;
+        }
+
+        ACTIVE_BASTION_FROST_AURAS.put(entity.getId(), new OrbitState(entity.getId(), radiusBlocks));
+    }
+
+    public static void stopBastionFrostAura(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        ACTIVE_BASTION_FROST_AURAS.remove(entity.getId());
+    }
+
+    public static void startBastionRuleAura(Entity entity, float radiusBlocks) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide || ShadowFormClientState.isConcealed(entity)) {
+            return;
+        }
+
+        ACTIVE_BASTION_RULE_AURAS.put(entity.getId(), new OrbitState(entity.getId(), radiusBlocks));
+    }
+
+    public static void stopBastionRuleAura(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        ACTIVE_BASTION_RULE_AURAS.remove(entity.getId());
+    }
+    public static void spawnShadowFormTransition(Entity entity, boolean entering) {
+        if (!(entity.level() instanceof ClientLevel level)) {
+            return;
+        }
+
+        StaticLevelEffect effect = new StaticLevelEffect(level);
+        double centerX = entity.getX();
+        double centerY = entity.getY() + Math.max(0.08D, entity.getBbHeight() * 0.56D);
+        double centerZ = entity.getZ();
+        int particleCount = entering ? 20 : 16;
+        double baseSpeed = entering ? 0.09D : 0.13D;
+        double verticalBias = entering ? 0.018D : 0.032D;
+        float baseSize = entering ? 0.28F : 0.24F;
+        int lifetime = entering ? 18 : 14;
+        int primaryColor = entering ? 0xFFDCCBFF : 0xFFF3EAFF;
+        int secondaryColor = entering ? 0xFF9A7DDB : 0xFFC8B6FF;
+
+        for (int i = 0; i < particleCount; i++) {
+            double angle = (Math.PI * 2.0D * i) / particleCount;
+            double radius = entering ? 0.12D + ((i & 1) == 0 ? 0.18D : 0.06D) : 0.05D;
+            double px = centerX + Math.cos(angle) * radius;
+            double pz = centerZ + Math.sin(angle) * radius;
+            double speed = baseSpeed * (0.85D + ((i % 3) * 0.12D));
+            double vx = Math.cos(angle) * speed;
+            double vz = Math.sin(angle) * speed;
+            double vy = verticalBias + (((i & 1) == 0) ? 0.008D : -0.004D);
+            int color = (i & 1) == 0 ? primaryColor : secondaryColor;
+            float size = baseSize + ((i & 1) == 0 ? 0.04F : -0.02F);
+            float roll = (i & 1) == 0 ? 24.0F : -24.0F;
+            float startRoll = (float) Math.toDegrees(angle);
+            createTrailEmitter(PHANTOM_TEXTURE, size, lifetime, color, vx, vy, vz, roll, startRoll)
+                    .emmit(effect, new Vector3f((float) px, (float) centerY, (float) pz), IDENTITY_ROTATION, UNIT_SCALE);
+        }
+
+        createTrailEmitter(PHANTOM_TEXTURE,
+                entering ? 0.42F : 0.34F,
+                entering ? 16 : 12,
+                entering ? 0xFFF5EEFF : 0xFFE5D8FF,
+                0.0D,
+                entering ? 0.012D : 0.02D,
+                0.0D,
+                entering ? 18.0F : -18.0F)
+                .emmit(effect, new Vector3f((float) centerX, (float) centerY, (float) centerZ), IDENTITY_ROTATION,
+                        new Vector3f(entering ? 1.2F : 1.05F, 1.0F, entering ? 1.2F : 1.05F));
+    }
+
+    public static void spawnSpectralBurst(Entity entity) {
+        if (!(entity.level() instanceof ClientLevel level)) {
+            return;
+        }
+
+        StaticLevelEffect effect = new StaticLevelEffect(level);
+        double centerX = entity.getX();
+        double centerY = entity.getY() + Math.max(0.08D, entity.getBbHeight() * 0.45D);
+        double centerZ = entity.getZ();
+        int particleCount = 14;
+
+        for (int i = 0; i < particleCount; i++) {
+            double angle = (Math.PI * 2.0D * i) / particleCount;
+            double speed = 0.08D + ((i & 1) == 0 ? 0.03D : 0.0D);
+            double vx = Math.cos(angle) * speed;
+            double vz = Math.sin(angle) * speed;
+            double vy = 0.01D + ((i % 3) * 0.004D);
+            ResourceLocation texture = (i & 1) == 0 ? SPECTRAL_TEXTURE_1 : SPECTRAL_TEXTURE_2;
+            int color = (i & 1) == 0 ? 0xFFB8FFF7 : 0xFF79E8E3;
+            float size = (i & 1) == 0 ? 0.26F : 0.2F;
+            createTrailEmitter(texture, size, 14, color, vx, vy, vz, (i & 1) == 0 ? 16.0F : -16.0F, (float) Math.toDegrees(angle))
+                    .emmit(effect, new Vector3f((float) centerX, (float) centerY, (float) centerZ), IDENTITY_ROTATION, UNIT_SCALE);
+        }
+    }
+
+    public static void spawnSpectralFlightTrail(Entity entity, Vec3 movement) {
+        if (!(entity.level() instanceof ClientLevel level) || movement.lengthSqr() < 1.0E-6D) {
+            return;
+        }
+
+        StaticLevelEffect effect = new StaticLevelEffect(level);
+        Vec3 normalized = movement.normalize();
+        Vec3 trailCenter = entity.position().subtract(normalized.scale(0.28D)).add(0.0D, Math.max(0.04D, entity.getBbHeight() * 0.18D), 0.0D);
+        Vec3 sideways = new Vec3(-normalized.z, 0.0D, normalized.x);
+
+        createTrailEmitter(SPECTRAL_TEXTURE_1, 0.22F, 12, 0xFFB8FFF7, 0.0D, 0.01D, 0.0D, 12.0F, entity.tickCount * 8.0F)
+                .emmit(effect, toVector(trailCenter), IDENTITY_ROTATION, UNIT_SCALE);
+        createTrailEmitter(SPECTRAL_TEXTURE_2, 0.18F, 10, 0xFF79E8E3, sideways.x * 0.01D, 0.008D, sideways.z * 0.01D, -14.0F, entity.tickCount * -10.0F)
+                .emmit(effect, toVector(trailCenter.add(sideways.scale(0.12D))), IDENTITY_ROTATION, UNIT_SCALE);
+        createTrailEmitter(SPECTRAL_TEXTURE_2, 0.18F, 10, 0xFF79E8E3, -sideways.x * 0.01D, 0.008D, -sideways.z * 0.01D, 14.0F, entity.tickCount * 10.0F)
+                .emmit(effect, toVector(trailCenter.add(sideways.scale(-0.12D))), IDENTITY_ROTATION, UNIT_SCALE);
+    }
+
+    public static void spawnStormArrowFlight(Entity entity, Vec3 movement) {
+        if (!(entity.level() instanceof ClientLevel level) || movement.lengthSqr() < 1.0E-6D) {
+            return;
+        }
+
+        StaticLevelEffect effect = new StaticLevelEffect(level);
+        Vec3 normalized = movement.normalize();
+        Vec3 center = entity.position().add(0.0D, 0.08D, 0.0D);
+        Vec3 right = new Vec3(-normalized.z, 0.0D, normalized.x);
+        Vec3 up = right.cross(normalized).normalize();
+        float baseAngle = entity.tickCount * 0.55F;
+
+        for (int i = 0; i < 3; i++) {
+            float angle = baseAngle + ((Mth.TWO_PI / 3.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            Vec3 orbitOffset = right.scale(cos * 0.24D).add(up.scale(sin * 0.24D));
+            Vec3 orbitPos = center.add(orbitOffset);
+            Vec3 tangent = right.scale(-sin * 0.015D).add(up.scale(cos * 0.015D));
+            createTrailEmitter(LEAF_TEXTURE, 0.18F, 12, 0xFFB6E38B, tangent.x, tangent.y + 0.004D, tangent.z, (i & 1) == 0 ? 18.0F : -18.0F, angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, toVector(orbitPos), IDENTITY_ROTATION, UNIT_SCALE);
+        }
+
+        Vec3 trailBase = center.subtract(normalized.scale(0.34D));
+        createTrailEmitter(LEAF_TEXTURE, 0.22F, 14, 0xFFB6E38B, 0.0D, 0.01D, 0.0D, 12.0F, entity.tickCount * 12.0F)
+                .emmit(effect, toVector(trailBase), IDENTITY_ROTATION, UNIT_SCALE);
+        createTrailEmitter(LEAF_TEXTURE, 0.16F, 12, 0xFFD7F2B8, right.x * 0.028D, 0.008D, right.z * 0.028D, 16.0F, entity.tickCount * -9.0F)
+                .emmit(effect, toVector(trailBase.add(right.scale(0.26D))), IDENTITY_ROTATION, UNIT_SCALE);
+        createTrailEmitter(LEAF_TEXTURE, 0.16F, 12, 0xFFD7F2B8, -right.x * 0.028D, 0.008D, -right.z * 0.028D, -16.0F, entity.tickCount * 9.0F)
+                .emmit(effect, toVector(trailBase.add(right.scale(-0.26D))), IDENTITY_ROTATION, UNIT_SCALE);
+    }
+
+    public static void spawnStormArrowShot(Entity entity) {
+        if (!(entity.level() instanceof ClientLevel level)) {
+            return;
+        }
+
+        Vec3 movement = entity.getDeltaMovement().lengthSqr() > 1.0E-6D ? entity.getDeltaMovement().normalize() : new Vec3(0.0D, 0.0D, 1.0D);
+        Vec3 center = entity.position().add(movement.scale(0.16D)).add(0.0D, 0.08D, 0.0D);
+        Vec3 right = new Vec3(-movement.z, 0.0D, movement.x);
+        if (right.lengthSqr() < 1.0E-6D) {
+            right = new Vec3(1.0D, 0.0D, 0.0D);
+        } else {
+            right = right.normalize();
+        }
+        Vec3 up = verticalAxis(movement, right);
+
+        StaticLevelEffect effect = new StaticLevelEffect(level);
+        for (int i = 0; i < 2; i++) {
+            double radius = i == 0 ? 0.22D : 0.42D;
+            float size = i == 0 ? 0.18F : 0.24F;
+            int lifetime = i == 0 ? 12 : 14;
+            int color = i == 0 ? 0xFFD7F2B8 : 0xFFB6E38B;
+            double lateralSpeed = i == 0 ? 0.055D : 0.075D;
+            double forwardBias = i == 0 ? 0.012D : 0.018D;
+
+            for (int point = 0; point < 12; point++) {
+                double angle = (Math.PI * 2.0D * point) / 12.0D;
+                double x = Math.cos(angle) * radius;
+                double y = Math.sin(angle) * radius;
+                Vec3 offset = right.scale(x).add(up.scale(y));
+                Vec3 velocity = right.scale(x * lateralSpeed).add(up.scale(y * lateralSpeed)).add(movement.scale(forwardBias));
+                createTrailEmitter(LEAF_TEXTURE, size, lifetime, color, velocity.x, velocity.y, velocity.z, (point & 1) == 0 ? 18.0F : -18.0F, (float) Math.toDegrees(angle))
+                        .emmit(effect, toVector(center.add(offset)), IDENTITY_ROTATION, UNIT_SCALE);
+            }
+        }
+    }
     public static void spawnFireStorm(Entity entity, float progress, float height, float radius, int tickCount) {
         if (!(entity.level() instanceof ClientLevel level)) {
             return;
@@ -207,7 +421,7 @@ public final class PBMPhotonEffectHelper {
     }
 
     public static void startBlessingCast(Entity entity) {
-        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide || ShadowFormClientState.isConcealed(entity)) {
             return;
         }
 
@@ -593,6 +807,9 @@ public final class PBMPhotonEffectHelper {
             ACTIVE_DRAGON_DESCEND_CASTS.clear();
             ACTIVE_GLACIER_CASTS.clear();
             ACTIVE_FIRE_STORM_CASTS.clear();
+            ACTIVE_MAGICAL_VEILS.clear();
+            ACTIVE_BASTION_FROST_AURAS.clear();
+            ACTIVE_BASTION_RULE_AURAS.clear();
             return;
         }
 
@@ -604,7 +821,9 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            spawnOrbit(effect, entity, state.tick);
+            if (!ShadowFormClientState.isConcealed(entity)) {
+                spawnOrbit(effect, entity, state.tick);
+            }
             state.tick++;
         }
 
@@ -615,7 +834,9 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            spawnGlacierVortex(effect, entity, state.tick);
+            if (!ShadowFormClientState.isConcealed(entity)) {
+                spawnGlacierVortex(effect, entity, state.tick);
+            }
             state.tick++;
         }
 
@@ -626,11 +847,103 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            spawnFireStormCastOrbit(effect, entity, state.tick);
+            if (!ShadowFormClientState.isConcealed(entity)) {
+                spawnFireStormCastOrbit(effect, entity, state.tick);
+            }
+            state.tick++;
+        }
+
+        for (OrbitState state : ACTIVE_MAGICAL_VEILS.values()) {
+            Entity entity = level.getEntity(state.entityId);
+            if (entity == null || !entity.isAlive()) {
+                ACTIVE_MAGICAL_VEILS.remove(state.entityId);
+                continue;
+            }
+
+            if (!ShadowFormClientState.isConcealed(entity)) {
+                spawnMagicalVeilOrbit(effect, entity, state.tick);
+            }
+            state.tick++;
+        }
+
+        for (OrbitState state : ACTIVE_BASTION_FROST_AURAS.values()) {
+            Entity entity = level.getEntity(state.entityId);
+            if (entity == null || !entity.isAlive()) {
+                ACTIVE_BASTION_FROST_AURAS.remove(state.entityId);
+                continue;
+            }
+
+            if (!ShadowFormClientState.isConcealed(entity)) {
+                spawnBastionFrostAura(effect, entity, state.tick, state.radiusBlocks);
+            }
+            state.tick++;
+        }
+
+        for (OrbitState state : ACTIVE_BASTION_RULE_AURAS.values()) {
+            Entity entity = level.getEntity(state.entityId);
+            if (entity == null || !entity.isAlive()) {
+                ACTIVE_BASTION_RULE_AURAS.remove(state.entityId);
+                continue;
+            }
+
+            if (!ShadowFormClientState.isConcealed(entity)) {
+                spawnBastionRuleAura(effect, entity, state.tick, state.radiusBlocks);
+            }
             state.tick++;
         }
 
     }
+    private static void spawnBastionFrostAura(StaticLevelEffect effect, Entity entity, int tick, float radiusBlocks) {
+        float baseAngle = tick * 0.14F;
+        double baseY = entity.getY() + 0.08D;
+        double outerRadius = Math.max(1.2D, radiusBlocks - 0.2D);
+        double innerRadius = Math.max(0.8D, outerRadius * 0.56D);
+        float outerScale = Mth.clamp(radiusBlocks / 8.0F, 0.45F, 1.35F);
+        for (int i = 0; i < 10; i++) {
+            float angle = baseAngle + ((Mth.TWO_PI / 10.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            double radius = outerRadius + (((i & 1) == 0 ? 0.18D : -0.06D) * outerScale);
+            double x = entity.getX() + (cos * radius);
+            double z = entity.getZ() + (sin * radius);
+            createTrailEmitter(SNOWFLAKE_TEXTURE, 0.24F, 14, 0xFFE8F6FF, -sin * 0.02D, 0.012D, cos * 0.02D, (i & 1) == 0 ? 16.0F : -16.0F, angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, new Vector3f((float) x, (float) baseY, (float) z), IDENTITY_ROTATION, UNIT_SCALE);
+        }
+
+        for (int i = 0; i < 6; i++) {
+            float angle = -baseAngle * 0.82F + ((Mth.TWO_PI / 6.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            double x = entity.getX() + (cos * innerRadius);
+            double z = entity.getZ() + (sin * innerRadius);
+            createTrailEmitter(SNOW_TEXTURE, 0.32F, 12, 0xFFBFE8FF, -cos * 0.012D, 0.02D, -sin * 0.012D, (i & 1) == 0 ? 10.0F : -10.0F, -angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, new Vector3f((float) x, (float) (baseY + 0.36D), (float) z), IDENTITY_ROTATION, new Vector3f(1.25F, 1.0F, 1.25F));
+        }
+    }
+
+    private static void spawnBastionRuleAura(StaticLevelEffect effect, Entity entity, int tick, float radiusBlocks) {
+        float baseAngle = tick * 0.18F;
+        double groundY = entity.getY() + 0.1D;
+        double waistY = entity.getY() + Math.max(0.65D, entity.getBbHeight() * 0.42D);
+        double outerRadius = Math.max(1.2D, radiusBlocks - 0.2D);
+        double innerRadius = Math.max(0.82D, outerRadius * 0.55D);
+        for (int i = 0; i < 8; i++) {
+            float angle = baseAngle + ((Mth.TWO_PI / 8.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            createTrailEmitter(PORTAL_TEXTURE, 0.3F, 14, 0xFFD7C2FF, -sin * 0.026D, 0.008D, cos * 0.026D, (i & 1) == 0 ? 18.0F : -18.0F, angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, new Vector3f((float) (entity.getX() + (cos * outerRadius)), (float) groundY, (float) (entity.getZ() + (sin * outerRadius))), IDENTITY_ROTATION, new Vector3f(1.2F, 1.0F, 1.2F));
+        }
+
+        for (int i = 0; i < 5; i++) {
+            float angle = -baseAngle * 0.9F + ((Mth.TWO_PI / 5.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            createTrailEmitter(PORTAL_TEXTURE, 0.38F, 12, 0xFFF1E8FF, -cos * 0.014D, 0.016D, -sin * 0.014D, (i & 1) == 0 ? 12.0F : -12.0F, -angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, new Vector3f((float) (entity.getX() + (cos * innerRadius)), (float) waistY, (float) (entity.getZ() + (sin * innerRadius))), IDENTITY_ROTATION, UNIT_SCALE);
+        }
+    }
+
     private static void spawnOrbit(StaticLevelEffect effect, Entity entity, int tick) {
         float baseAngle = (tick * ROTATION_SPEED) % Mth.TWO_PI;
         for (int i = 0; i < ORBIT_PARTICLES_PER_TICK; i++) {
@@ -703,6 +1016,28 @@ public final class PBMPhotonEffectHelper {
         }
     }
 
+    private static void spawnMagicalVeilOrbit(StaticLevelEffect effect, Entity entity, int tick) {
+        float angleStep = Mth.TWO_PI / MAGICAL_VEIL_PARTICLES_PER_TICK;
+        float baseAngle = tick * MAGICAL_VEIL_ROTATION_SPEED;
+        double baseY = entity.getY() + Math.max(0.7D, entity.getBbHeight() * 0.52D);
+        double radius = Math.max(0.95D, entity.getBbWidth() * 0.9D);
+
+        for (int i = 0; i < MAGICAL_VEIL_PARTICLES_PER_TICK; i++) {
+            float angle = baseAngle + (angleStep * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            double x = entity.getX() + (cos * radius);
+            double z = entity.getZ() + (sin * radius);
+            double vx = -sin * 0.012D;
+            double vz = cos * 0.012D;
+            float size = (i & 1) == 0 ? 0.26F : 0.22F;
+            int color = (i & 1) == 0 ? 0xFFF2E7FF : 0xFFD8B8FF;
+            float roll = angle * Mth.RAD_TO_DEG;
+            createTrailEmitter(MAGICAL_VEIL_TEXTURE, size, 14, color, vx, 0.002D, vz, (i & 1) == 0 ? 10.0F : -10.0F, roll)
+                    .emmit(effect, new Vector3f((float) x, (float) baseY, (float) z), IDENTITY_ROTATION, UNIT_SCALE);
+        }
+    }
+
     private static void spawnFireStormCastBurst(Entity entity) {
         if (!(entity.level() instanceof ClientLevel level)) {
             return;
@@ -739,7 +1074,7 @@ public final class PBMPhotonEffectHelper {
 
 
     public static void spawnBlessingHealPulse(Entity entity) {
-        if (!(entity.level() instanceof ClientLevel level)) {
+        if (ShadowFormClientState.isConcealed(entity) || !(entity.level() instanceof ClientLevel level)) {
             return;
         }
 
@@ -770,7 +1105,7 @@ public final class PBMPhotonEffectHelper {
                 .emmit(effect, new Vector3f((float) centerX, (float) midY, (float) centerZ), IDENTITY_ROTATION, new Vector3f(1.1F, 1.0F, 1.1F));
     }
     public static void spawnBlessingAbsorptionPulse(Entity entity) {
-        if (!(entity.level() instanceof ClientLevel level)) {
+        if (ShadowFormClientState.isConcealed(entity) || !(entity.level() instanceof ClientLevel level)) {
             return;
         }
 
@@ -802,7 +1137,7 @@ public final class PBMPhotonEffectHelper {
     }
 
     public static void spawnAbsorptionShield(LivingEntity entity, float progress, int tick, float absorptionAmount) {
-        if (!(entity.level() instanceof ClientLevel level) || progress <= 0.01F || (tick & 1) != 0) {
+        if (ShadowFormClientState.isConcealed(entity) || !(entity.level() instanceof ClientLevel level) || progress <= 0.01F || (tick & 1) != 0) {
             return;
         }
         StaticLevelEffect effect = new StaticLevelEffect(level);
@@ -1126,48 +1461,17 @@ public final class PBMPhotonEffectHelper {
 
     private static final class OrbitState {
         private final int entityId;
+        private final float radiusBlocks;
         private int tick;
 
         private OrbitState(int entityId) {
+            this(entityId, 8.0F);
+        }
+
+        private OrbitState(int entityId, float radiusBlocks) {
             this.entityId = entityId;
+            this.radiusBlocks = radiusBlocks;
             this.tick = 0;
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
