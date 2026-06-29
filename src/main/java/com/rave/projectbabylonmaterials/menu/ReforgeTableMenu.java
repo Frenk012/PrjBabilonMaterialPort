@@ -159,7 +159,7 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
         }
 
         int requiredXp = getRequiredXp();
-        if (requiredXp <= 0 || player.experienceLevel < requiredXp) {
+        if (player.experienceLevel < requiredXp) {
             return false;
         }
 
@@ -167,6 +167,18 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
         boolean processedOperation = false;
         boolean outputChanged = false;
         ItemStack resultStack = centerStack.copy();
+
+        // Socket the gem first, while resultStack still matches the item canSocket was
+        // validated against. Reforging afterwards re-rolls the gem-slot count, which would
+        // otherwise make socketGem fail on the reforged item and silently drop the gem.
+        if (canSocket && GemSlotHelper.socketGem(resultStack, gemStack)) {
+            gemStack.shrink(1);
+            spentXp += getSocketXp();
+            processedOperation = true;
+            outputChanged = true;
+        } else if (!gemStack.isEmpty() && reforgeRecipeOptional.isEmpty()) {
+            handleSocketFailureMessage(player, centerStack, gemStack);
+        }
 
         if (reforgeRecipeOptional.isPresent()) {
             ItemReforgeHelper.ReforgeRecipe recipe = reforgeRecipeOptional.get();
@@ -177,23 +189,13 @@ public class ReforgeTableMenu extends AbstractContainerMenu {
 
             boolean success = player.getRandom().nextInt(100) < recipe.successChance();
             if (success) {
+                // Carries over any gem just socketed (SOCKETED_GEMS is preserved by the copy).
                 resultStack = ItemReforgeHelper.createReforgedItem(resultStack, recipe.nextRarity(), player.getRandom());
                 outputChanged = true;
             }
         }
 
-        if (canSocket) {
-            if (GemSlotHelper.socketGem(resultStack, gemStack)) {
-                gemStack.shrink(1);
-                spentXp += getSocketXp();
-                processedOperation = true;
-                outputChanged = true;
-            }
-        } else if (!gemStack.isEmpty()) {
-            handleSocketFailureMessage(player, centerStack, gemStack);
-        }
-
-        if (!processedOperation || spentXp <= 0) {
+        if (!processedOperation) {
             return false;
         }
 
