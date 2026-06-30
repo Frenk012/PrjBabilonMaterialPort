@@ -23,9 +23,32 @@ public final class PBMClientConfig {
         return HOLDER.hideVanillaArmorHud.get();
     }
 
+    public static CombatHudPosition combatHudPosition() {
+        return HOLDER.combatHudPosition.get();
+    }
+
+    public static int customCombatHudX() {
+        return HOLDER.customCombatHudX.get();
+    }
+
+    public static int customCombatHudY() {
+        return HOLDER.customCombatHudY.get();
+    }
+
+    public enum CombatHudPosition {
+        LEFT_OF_HOTBAR,
+        RIGHT_OF_HOTBAR,
+        TOP_LEFT,
+        TOP_RIGHT,
+        CUSTOM
+    }
+
     private static final class Holder {
         private final ForgeConfigSpec.BooleanValue showCustomCombatHud;
         private final ForgeConfigSpec.BooleanValue hideVanillaArmorHud;
+        private final ForgeConfigSpec.EnumValue<CombatHudPosition> combatHudPosition;
+        private final ForgeConfigSpec.IntValue customCombatHudX;
+        private final ForgeConfigSpec.IntValue customCombatHudY;
 
         private Holder(ForgeConfigSpec.Builder builder) {
             builder.push("hud");
@@ -35,6 +58,15 @@ public final class PBMClientConfig {
             hideVanillaArmorHud = builder
                     .comment("Hide the vanilla armor bar when the custom combat HUD is enabled.")
                     .define("hideVanillaArmorHud", true);
+            combatHudPosition = builder
+                    .comment("Preset position for the custom combat HUD.", "Available: LEFT_OF_HOTBAR, RIGHT_OF_HOTBAR, TOP_LEFT, TOP_RIGHT, CUSTOM")
+                    .defineEnum("combatHudPosition", CombatHudPosition.LEFT_OF_HOTBAR);
+            customCombatHudX = builder
+                    .comment("Absolute X position for the custom combat HUD when combatHudPosition=CUSTOM.")
+                    .defineInRange("customCombatHudX", 4, -4096, 4096);
+            customCombatHudY = builder
+                    .comment("Absolute Y position for the custom combat HUD when combatHudPosition=CUSTOM.")
+                    .defineInRange("customCombatHudY", 4, -4096, 4096);
             builder.pop();
         }
     }

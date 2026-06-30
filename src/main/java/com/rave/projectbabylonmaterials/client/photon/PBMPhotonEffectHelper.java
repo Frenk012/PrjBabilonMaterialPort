@@ -91,8 +91,103 @@ public final class PBMPhotonEffectHelper {
     private static final int TRAIL_VISUAL_INTERVAL = 2;
     private static final int TRAIL_VISUAL_LIFETIME = 60;
     private static final double TRAIL_HALF_WIDTH = 1.5D;
+    private static final double PHOTON_NEAR_DISTANCE_SQR = 18.0D * 18.0D;
+    private static final double PHOTON_MEDIUM_DISTANCE_SQR = 32.0D * 32.0D;
+    private static final double PHOTON_FAR_DISTANCE_SQR = 48.0D * 48.0D;
+    private static final double PHOTON_MAX_DISTANCE_SQR = 64.0D * 64.0D;
+    private static final double PHOTON_OCCLUDED_MAX_DISTANCE_SQR = 26.0D * 26.0D;
 
     private PBMPhotonEffectHelper() {
+    }
+
+    private static boolean shouldRenderPersistentEffect(Entity entity, int tick) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.level == null || entity == null || !entity.isAlive()) {
+            return false;
+        }
+
+        if (minecraft.player == entity) {
+            return true;
+        }
+
+        double distanceSqr = minecraft.player.distanceToSqr(entity);
+        if (distanceSqr > PHOTON_MAX_DISTANCE_SQR) {
+            return false;
+        }
+
+        boolean visible = minecraft.player.hasLineOfSight(entity);
+        if (!visible && distanceSqr > PHOTON_OCCLUDED_MAX_DISTANCE_SQR) {
+            return false;
+        }
+
+        int interval = resolveDistanceInterval(distanceSqr, visible);
+        return interval <= 1 || (tick % interval) == 0;
+    }
+
+    private static boolean shouldRenderTransientEffect(Entity entity, int tick) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.level == null || entity == null || !entity.isAlive()) {
+            return false;
+        }
+
+        if (minecraft.player == entity) {
+            return true;
+        }
+
+        double distanceSqr = minecraft.player.distanceToSqr(entity);
+        if (distanceSqr > PHOTON_MAX_DISTANCE_SQR) {
+            return false;
+        }
+
+        boolean visible = minecraft.player.hasLineOfSight(entity);
+        if (!visible && distanceSqr > PHOTON_OCCLUDED_MAX_DISTANCE_SQR) {
+            return false;
+        }
+
+        int interval = resolveDistanceInterval(distanceSqr, visible);
+        return interval <= 1 || (tick % interval) == 0;
+    }
+
+    private static boolean shouldRenderPointEffect(ClientLevel level, Vec3 position) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.level != level) {
+            return false;
+        }
+
+        Vec3 eyePosition = minecraft.player.getEyePosition();
+        double distanceSqr = eyePosition.distanceToSqr(position);
+        if (distanceSqr > PHOTON_MAX_DISTANCE_SQR) {
+            return false;
+        }
+
+        if (distanceSqr <= PHOTON_OCCLUDED_MAX_DISTANCE_SQR) {
+            return true;
+        }
+
+        return hasLineOfSight(level, eyePosition, position);
+    }
+
+    private static int resolveDistanceInterval(double distanceSqr, boolean visible) {
+        if (distanceSqr <= PHOTON_NEAR_DISTANCE_SQR) {
+            return 1;
+        }
+        if (distanceSqr <= PHOTON_MEDIUM_DISTANCE_SQR) {
+            return visible ? 2 : 3;
+        }
+        if (distanceSqr <= PHOTON_FAR_DISTANCE_SQR) {
+            return visible ? 3 : 5;
+        }
+        return visible ? 4 : 6;
+    }
+
+    private static boolean hasLineOfSight(ClientLevel level, Vec3 from, Vec3 to) {
+        return level.clip(new net.minecraft.world.level.ClipContext(
+                from,
+                to,
+                net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                net.minecraft.world.level.ClipContext.Fluid.NONE,
+                Minecraft.getInstance().player
+        )).getType() == net.minecraft.world.phys.HitResult.Type.MISS;
     }
 
     public static void startDragonDescendCast(Entity entity) {
@@ -302,6 +397,10 @@ public final class PBMPhotonEffectHelper {
             return;
         }
 
+        if (!shouldRenderTransientEffect(entity, entity.tickCount)) {
+            return;
+        }
+
         StaticLevelEffect effect = new StaticLevelEffect(level);
         Vec3 normalized = movement.normalize();
         Vec3 center = entity.position().add(0.0D, 0.08D, 0.0D);
@@ -331,6 +430,10 @@ public final class PBMPhotonEffectHelper {
 
     public static void spawnStormArrowShot(Entity entity) {
         if (!(entity.level() instanceof ClientLevel level)) {
+            return;
+        }
+
+        if (!shouldRenderTransientEffect(entity, entity.tickCount)) {
             return;
         }
 
@@ -366,6 +469,10 @@ public final class PBMPhotonEffectHelper {
     }
     public static void spawnFireStorm(Entity entity, float progress, float height, float radius, int tickCount) {
         if (!(entity.level() instanceof ClientLevel level)) {
+            return;
+        }
+
+        if (!shouldRenderTransientEffect(entity, tickCount)) {
             return;
         }
 
@@ -472,6 +579,10 @@ public final class PBMPhotonEffectHelper {
             return;
         }
 
+        if (!shouldRenderTransientEffect(projectile, projectile.tickCount)) {
+            return;
+        }
+
         StaticLevelEffect effect = new StaticLevelEffect(level);
         Vec3 normalized = movement.normalize();
         Vec3 breathDirection = new Vec3(normalized.x, normalized.y + BREATH_DOWNWARD_BIAS, normalized.z).normalize();
@@ -492,6 +603,10 @@ public final class PBMPhotonEffectHelper {
 
     public static void spawnEnderProjectileFlight(Entity projectile, Vec3 movement) {
         if (!(projectile.level() instanceof ClientLevel level) || movement.lengthSqr() < 1.0E-6D) {
+            return;
+        }
+
+        if (!shouldRenderTransientEffect(projectile, projectile.tickCount)) {
             return;
         }
 
@@ -522,6 +637,10 @@ public final class PBMPhotonEffectHelper {
             return;
         }
 
+        if (!shouldRenderPointEffect(level, hitPos)) {
+            return;
+        }
+
         StaticLevelEffect effect = new StaticLevelEffect(level);
         for (int i = 0; i < 24; i++) {
             double angle = (Math.PI * 2.0D * i) / 24.0D;
@@ -542,6 +661,10 @@ public final class PBMPhotonEffectHelper {
 
     public static void spawnHolyProjectileFlight(Entity projectile, Vec3 movement) {
         if (!(projectile.level() instanceof ClientLevel level) || movement.lengthSqr() < 1.0E-6D) {
+            return;
+        }
+
+        if (!shouldRenderTransientEffect(projectile, projectile.tickCount)) {
             return;
         }
 
@@ -572,6 +695,10 @@ public final class PBMPhotonEffectHelper {
             return;
         }
 
+        if (!shouldRenderPointEffect(level, hitPos)) {
+            return;
+        }
+
         StaticLevelEffect effect = new StaticLevelEffect(level);
         for (int i = 0; i < 14; i++) {
             double angle = (Math.PI * 2.0D * i) / 14.0D;
@@ -591,6 +718,10 @@ public final class PBMPhotonEffectHelper {
 
     public static void spawnIceProjectileFlight(Entity projectile, Vec3 movement) {
         if (!(projectile.level() instanceof ClientLevel level) || movement.lengthSqr() < 1.0E-6D) {
+            return;
+        }
+
+        if (!shouldRenderTransientEffect(projectile, projectile.tickCount)) {
             return;
         }
 
@@ -621,6 +752,10 @@ public final class PBMPhotonEffectHelper {
             return;
         }
 
+        if (!shouldRenderPointEffect(level, hitPos)) {
+            return;
+        }
+
         StaticLevelEffect effect = new StaticLevelEffect(level);
         for (int i = 0; i < 24; i++) {
             double angle = (Math.PI * 2.0D * i) / 24.0D;
@@ -640,6 +775,10 @@ public final class PBMPhotonEffectHelper {
 
     public static void spawnFireProjectileFlight(Entity projectile, Vec3 movement) {
         if (!(projectile.level() instanceof ClientLevel level) || movement.lengthSqr() < 1.0E-6D) {
+            return;
+        }
+
+        if (!shouldRenderTransientEffect(projectile, projectile.tickCount)) {
             return;
         }
 
@@ -669,6 +808,10 @@ public final class PBMPhotonEffectHelper {
 
     public static void spawnFireProjectileImpact(Entity projectile, Vec3 hitPos) {
         if (!(projectile.level() instanceof ClientLevel level)) {
+            return;
+        }
+
+        if (!shouldRenderPointEffect(level, hitPos)) {
             return;
         }
 
@@ -702,6 +845,10 @@ public final class PBMPhotonEffectHelper {
             return;
         }
 
+        if (!shouldRenderTransientEffect(projectile, projectile.tickCount)) {
+            return;
+        }
+
         if ((projectile.tickCount % GOLDEN_PROJECTILE_PARTICLE_INTERVAL) != 0) {
             return;
         }
@@ -729,6 +876,10 @@ public final class PBMPhotonEffectHelper {
             return;
         }
 
+        if (!shouldRenderPointEffect(level, hitPos)) {
+            return;
+        }
+
         StaticLevelEffect effect = new StaticLevelEffect(level);
         for (int i = 0; i < 14; i++) {
             double angle = (Math.PI * 2.0D * i) / 14.0D;
@@ -748,6 +899,10 @@ public final class PBMPhotonEffectHelper {
 
     public static void spawnDiamondProjectileFlight(Entity projectile, Vec3 movement) {
         if (!(projectile.level() instanceof ClientLevel level) || movement.lengthSqr() < 1.0E-6D) {
+            return;
+        }
+
+        if (!shouldRenderTransientEffect(projectile, projectile.tickCount)) {
             return;
         }
 
@@ -775,6 +930,10 @@ public final class PBMPhotonEffectHelper {
 
     public static void spawnDiamondProjectileImpact(Entity projectile, Vec3 hitPos) {
         if (!(projectile.level() instanceof ClientLevel level)) {
+            return;
+        }
+
+        if (!shouldRenderPointEffect(level, hitPos)) {
             return;
         }
 
@@ -821,7 +980,7 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            if (!ShadowFormClientState.isConcealed(entity)) {
+            if (!ShadowFormClientState.isConcealed(entity) && shouldRenderPersistentEffect(entity, state.tick)) {
                 spawnOrbit(effect, entity, state.tick);
             }
             state.tick++;
@@ -834,7 +993,7 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            if (!ShadowFormClientState.isConcealed(entity)) {
+            if (!ShadowFormClientState.isConcealed(entity) && shouldRenderPersistentEffect(entity, state.tick)) {
                 spawnGlacierVortex(effect, entity, state.tick);
             }
             state.tick++;
@@ -847,7 +1006,7 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            if (!ShadowFormClientState.isConcealed(entity)) {
+            if (!ShadowFormClientState.isConcealed(entity) && shouldRenderPersistentEffect(entity, state.tick)) {
                 spawnFireStormCastOrbit(effect, entity, state.tick);
             }
             state.tick++;
@@ -860,7 +1019,7 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            if (!ShadowFormClientState.isConcealed(entity)) {
+            if (!ShadowFormClientState.isConcealed(entity) && shouldRenderPersistentEffect(entity, state.tick)) {
                 spawnMagicalVeilOrbit(effect, entity, state.tick);
             }
             state.tick++;
@@ -873,7 +1032,7 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            if (!ShadowFormClientState.isConcealed(entity)) {
+            if (!ShadowFormClientState.isConcealed(entity) && shouldRenderPersistentEffect(entity, state.tick)) {
                 spawnBastionFrostAura(effect, entity, state.tick, state.radiusBlocks);
             }
             state.tick++;
@@ -886,7 +1045,7 @@ public final class PBMPhotonEffectHelper {
                 continue;
             }
 
-            if (!ShadowFormClientState.isConcealed(entity)) {
+            if (!ShadowFormClientState.isConcealed(entity) && shouldRenderPersistentEffect(entity, state.tick)) {
                 spawnBastionRuleAura(effect, entity, state.tick, state.radiusBlocks);
             }
             state.tick++;
@@ -1078,6 +1237,10 @@ public final class PBMPhotonEffectHelper {
             return;
         }
 
+        if (!shouldRenderTransientEffect(entity, entity.tickCount)) {
+            return;
+        }
+
         StaticLevelEffect effect = new StaticLevelEffect(level);
         double centerX = entity.getX();
         double baseY = entity.getY() + Math.max(0.2D, entity.getBbHeight() * 0.2D);
@@ -1106,6 +1269,10 @@ public final class PBMPhotonEffectHelper {
     }
     public static void spawnBlessingAbsorptionPulse(Entity entity) {
         if (ShadowFormClientState.isConcealed(entity) || !(entity.level() instanceof ClientLevel level)) {
+            return;
+        }
+
+        if (!shouldRenderTransientEffect(entity, entity.tickCount)) {
             return;
         }
 
@@ -1140,6 +1307,11 @@ public final class PBMPhotonEffectHelper {
         if (ShadowFormClientState.isConcealed(entity) || !(entity.level() instanceof ClientLevel level) || progress <= 0.01F || (tick & 1) != 0) {
             return;
         }
+
+        if (!shouldRenderTransientEffect(entity, tick)) {
+            return;
+        }
+
         StaticLevelEffect effect = new StaticLevelEffect(level);
         float clampedProgress = Mth.clamp(progress, 0.0F, 1.0F);
         float maxHealth = Math.max(1.0F, entity.getMaxHealth());
@@ -1411,7 +1583,7 @@ public final class PBMPhotonEffectHelper {
         return emitter;
     }
     private static void applySharedMaterial(ParticleConfig config, ResourceLocation texture, int color) {
-        applySharedMaterial(config, texture, color, true);
+        applySharedMaterial(config, texture, color, false);
     }
 
     private static void applySharedMaterial(ParticleConfig config, ResourceLocation texture, int color, boolean bloom) {
@@ -1421,10 +1593,7 @@ public final class PBMPhotonEffectHelper {
         TextureMaterial textureMaterial = new TextureMaterial(texture);
         textureMaterial.discardThreshold = 0.02F;
         config.material.setMaterial(textureMaterial);
-        config.renderer.setBloomEffect(bloom);
-        if (bloom) {
-            config.renderer.setBloomColor(color);
-        }
+        config.renderer.setBloomEffect(false);
     }
 
     private static int withAlpha(int rgb, int alpha) {

@@ -31,3 +31,17 @@ mandatory=true
 versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
+
+[[dependencies.project_babylon_materials]]
+modId="photon"
+mandatory=true
+versionRange="[1.1.17,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.project_babylon_materials]]
+modId="ldlib"
+mandatory=true
+versionRange="[1.0.50,)"
+ordering="NONE"
+side="BOTH"

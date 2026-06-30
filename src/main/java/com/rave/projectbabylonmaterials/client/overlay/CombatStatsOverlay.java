@@ -3,6 +3,7 @@ package com.rave.projectbabylonmaterials.client.overlay;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.config.PBMClientConfig;
+import com.rave.projectbabylonmaterials.config.PBMClientConfig.CombatHudPosition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -45,6 +46,8 @@ public final class CombatStatsOverlay {
     private static final int HOTBAR_GAP = 6;
     private static final int OFFHAND_SHIFT_X = 26;
     private static final int ARES_OFFHAND_EXTRA_SHIFT_X = 4;
+    private static final int SCREEN_EDGE_MARGIN = 4;
+    private static final int TOP_MARGIN = 4;
     private static final int BOTTOM_MARGIN = -14;
     private static final int PASSIVE_ICON_SIZE = 16;
     private static final int PASSIVE_HOTBAR_GAP = 8;
@@ -79,16 +82,9 @@ public final class CombatStatsOverlay {
         int contentWidth = rows.stream().mapToInt(row -> font.width(row.value())).max().orElse(0);
         int boxWidth = BOX_PADDING_X * 2 + ICON_SIZE + 3 + contentWidth;
         int boxHeight = BOX_PADDING_Y * 2 + ROW_HEIGHT * rows.size();
-        int hotbarLeft = (screenWidth / 2) - HOTBAR_HALF_WIDTH;
-        int x = hotbarLeft - HOTBAR_GAP - boxWidth;
-        Boolean aresHudOffhandVisible = getAresHudOffhandSlotVisible();
-        if (shouldShiftForOffhandSlot(minecraft.player, aresHudOffhandVisible)) {
-            x -= OFFHAND_SHIFT_X;
-            if (Boolean.TRUE.equals(aresHudOffhandVisible)) {
-                x -= ARES_OFFHAND_EXTRA_SHIFT_X;
-            }
-        }
-        int y = screenHeight - HOTBAR_HEIGHT - BOTTOM_MARGIN - boxHeight;
+        HudPosition position = resolveHudPosition(minecraft.player, screenWidth, screenHeight, boxWidth, boxHeight);
+        int x = position.x();
+        int y = position.y();
 
         guiGraphics.fill(x, y, x + boxWidth, y + boxHeight, BACKGROUND_COLOR);
         guiGraphics.fill(x, y, x + boxWidth, y + 1, BORDER_COLOR);
@@ -107,6 +103,54 @@ public final class CombatStatsOverlay {
     private CombatStatsOverlay() {
     }
 
+    private static HudPosition resolveHudPosition(Player player, int screenWidth, int screenHeight, int boxWidth, int boxHeight) {
+        CombatHudPosition position = PBMClientConfig.combatHudPosition();
+        Boolean aresHudOffhandVisible = getAresHudOffhandSlotVisible();
+        int hotbarLeft = (screenWidth / 2) - HOTBAR_HALF_WIDTH;
+        int hotbarRight = (screenWidth / 2) + HOTBAR_HALF_WIDTH;
+        int hotbarTop = screenHeight - HOTBAR_HEIGHT - BOTTOM_MARGIN - boxHeight;
+
+        int x;
+        int y;
+        switch (position) {
+            case RIGHT_OF_HOTBAR -> {
+                x = hotbarRight + HOTBAR_GAP;
+                y = hotbarTop;
+            }
+            case TOP_LEFT -> {
+                x = SCREEN_EDGE_MARGIN;
+                y = TOP_MARGIN;
+            }
+            case TOP_RIGHT -> {
+                x = screenWidth - boxWidth - SCREEN_EDGE_MARGIN;
+                y = TOP_MARGIN;
+            }
+            case CUSTOM -> {
+                x = PBMClientConfig.customCombatHudX();
+                y = PBMClientConfig.customCombatHudY();
+            }
+            case LEFT_OF_HOTBAR -> {
+                x = hotbarLeft - HOTBAR_GAP - boxWidth;
+                if (shouldShiftForOffhandSlot(player, aresHudOffhandVisible)) {
+                    x -= OFFHAND_SHIFT_X;
+                    if (Boolean.TRUE.equals(aresHudOffhandVisible)) {
+                        x -= ARES_OFFHAND_EXTRA_SHIFT_X;
+                    }
+                }
+                y = hotbarTop;
+            }
+            default -> {
+                x = hotbarLeft - HOTBAR_GAP - boxWidth;
+                y = hotbarTop;
+            }
+        }
+
+        int maxX = Math.max(0, screenWidth - boxWidth);
+        int maxY = Math.max(0, screenHeight - boxHeight);
+        x = Math.max(0, Math.min(x, maxX));
+        y = Math.max(0, Math.min(y, maxY));
+        return new HudPosition(x, y);
+    }
     private static boolean shouldShiftForOffhandSlot(Player player, Boolean aresHudOffhandVisible) {
         if (player.getMainArm() != HumanoidArm.RIGHT) {
             return false;
@@ -258,6 +302,9 @@ public final class CombatStatsOverlay {
     }
 
     private record Row(ResourceLocation icon, String value) {
+    }
+
+    private record HudPosition(int x, int y) {
     }
 }
 
