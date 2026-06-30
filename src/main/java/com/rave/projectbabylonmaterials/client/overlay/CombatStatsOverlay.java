@@ -2,6 +2,10 @@ package com.rave.projectbabylonmaterials.client.overlay;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
+import com.rave.projectbabylonmaterials.client.hud.ClientHudLayoutState;
+import com.rave.projectbabylonmaterials.client.hud.HudPlacement;
+import com.rave.projectbabylonmaterials.client.hud.HudScale;
+import com.rave.projectbabylonmaterials.hud.HudElements;
 import com.rave.projectbabylonmaterials.config.PBMClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -82,26 +86,33 @@ public final class CombatStatsOverlay {
         int contentWidth = rows.stream().mapToInt(row -> font.width(row.value())).max().orElse(0);
         int boxWidth = BOX_PADDING_X * 2 + ICON_SIZE + 3 + contentWidth;
         int boxHeight = BOX_PADDING_Y * 2 + ROW_HEIGHT * rows.size();
-        int hotbarLeft = (screenWidth / 2) - HOTBAR_HALF_WIDTH;
-        int x = hotbarLeft - HOTBAR_GAP - boxWidth;
-        Boolean aresHudOffhandVisible = getAresHudOffhandSlotVisible();
-        if (shouldShiftForOffhandSlot(minecraft.player, aresHudOffhandVisible)) {
-            x -= OFFHAND_SHIFT_X;
-            if (Boolean.TRUE.equals(aresHudOffhandVisible)) {
-                x -= ARES_OFFHAND_EXTRA_SHIFT_X;
+        HudPlacement statsPlacement = ClientHudLayoutState.resolve(HudElements.STATS_BOX, screenWidth, screenHeight, boxWidth, boxHeight);
+        if (statsPlacement.visible()) {
+            int x = statsPlacement.x();
+            int y = statsPlacement.y();
+            Boolean aresHudOffhandVisible = getAresHudOffhandSlotVisible();
+            if (statsPlacement.shiftForOffhand() && shouldShiftForOffhandSlot(minecraft.player, aresHudOffhandVisible)) {
+                x -= OFFHAND_SHIFT_X;
+                if (Boolean.TRUE.equals(aresHudOffhandVisible)) {
+                    x -= ARES_OFFHAND_EXTRA_SHIFT_X;
+                }
             }
-        }
-        int y = screenHeight - HOTBAR_HEIGHT - BOTTOM_MARGIN - boxHeight;
 
-        guiGraphics.fill(x, y, x + boxWidth, y + boxHeight, BACKGROUND_COLOR);
-        guiGraphics.fill(x, y, x + boxWidth, y + 1, BORDER_COLOR);
-        guiGraphics.fill(x, y + boxHeight - 1, x + boxWidth, y + boxHeight, BORDER_COLOR);
-        guiGraphics.fill(x, y, x + 1, y + boxHeight, BORDER_COLOR);
-        guiGraphics.fill(x + boxWidth - 1, y, x + boxWidth, y + boxHeight, BORDER_COLOR);
+            guiGraphics.pose().pushPose();
+            HudScale.apply(guiGraphics, x, y, statsPlacement.scale());
 
-        for (int i = 0; i < rows.size(); i++) {
-            Row row = rows.get(i);
-            renderRow(guiGraphics, font, x + BOX_PADDING_X, y + BOX_PADDING_Y + ROW_HEIGHT * i, row.icon(), row.value());
+            guiGraphics.fill(x, y, x + boxWidth, y + boxHeight, BACKGROUND_COLOR);
+            guiGraphics.fill(x, y, x + boxWidth, y + 1, BORDER_COLOR);
+            guiGraphics.fill(x, y + boxHeight - 1, x + boxWidth, y + boxHeight, BORDER_COLOR);
+            guiGraphics.fill(x, y, x + 1, y + boxHeight, BORDER_COLOR);
+            guiGraphics.fill(x + boxWidth - 1, y, x + boxWidth, y + boxHeight, BORDER_COLOR);
+
+            for (int i = 0; i < rows.size(); i++) {
+                Row row = rows.get(i);
+                renderRow(guiGraphics, font, x + BOX_PADDING_X, y + BOX_PADDING_Y + ROW_HEIGHT * i, row.icon(), row.value());
+            }
+
+            guiGraphics.pose().popPose();
         }
 
         renderDragonsteelPassive(guiGraphics, font, minecraft.player, screenWidth, screenHeight);
@@ -175,11 +186,17 @@ public final class CombatStatsOverlay {
             return;
         }
 
-        int hotbarRight = (screenWidth / 2) + HOTBAR_HALF_WIDTH;
-        int iconX = hotbarRight + PASSIVE_HOTBAR_GAP;
-        int iconY = screenHeight - HOTBAR_HEIGHT + PASSIVE_VERTICAL_OFFSET;
+        HudPlacement placement = ClientHudLayoutState.resolve(HudElements.DRAGONSTEEL_PASSIVE, screenWidth, screenHeight, PASSIVE_ICON_SIZE, PASSIVE_ICON_SIZE);
+        if (!placement.visible()) {
+            return;
+        }
+        int iconX = placement.x();
+        int iconY = placement.y();
         int remainingTicks = DragonsteelCooldownClientState.getRemainingTicks();
         boolean onCooldown = remainingTicks > 0;
+
+        guiGraphics.pose().pushPose();
+        HudScale.apply(guiGraphics, iconX, iconY, placement.scale());
 
         if (onCooldown) {
             RenderSystem.setShaderColor(0.45F, 0.45F, 0.45F, 1.0F);
@@ -197,24 +214,22 @@ public final class CombatStatsOverlay {
         );
         if (onCooldown) {
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+            renderCooldownProgress(guiGraphics, iconX, iconY, remainingTicks);
+
+            String cooldownText = formatCooldownSeconds(remainingTicks);
+            int scaledTextWidth = Math.round(font.width(cooldownText) * COOLDOWN_TEXT_SCALE);
+            int scaledTextHeight = Math.round(font.lineHeight * COOLDOWN_TEXT_SCALE);
+            int textX = iconX + (PASSIVE_ICON_SIZE - scaledTextWidth) / 2;
+            int textY = iconY - COOLDOWN_TEXT_GAP - scaledTextHeight;
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(textX, textY, 0.0F);
+            guiGraphics.pose().scale(COOLDOWN_TEXT_SCALE, COOLDOWN_TEXT_SCALE, 1.0F);
+            guiGraphics.drawString(font, cooldownText, 1, 1, COOLDOWN_SHADOW_COLOR, false);
+            guiGraphics.drawString(font, cooldownText, 0, 0, COOLDOWN_TEXT_COLOR, false);
+            guiGraphics.pose().popPose();
         }
 
-        if (!onCooldown) {
-            return;
-        }
-
-        renderCooldownProgress(guiGraphics, iconX, iconY, remainingTicks);
-
-        String cooldownText = formatCooldownSeconds(remainingTicks);
-        int scaledTextWidth = Math.round(font.width(cooldownText) * COOLDOWN_TEXT_SCALE);
-        int scaledTextHeight = Math.round(font.lineHeight * COOLDOWN_TEXT_SCALE);
-        int textX = iconX + (PASSIVE_ICON_SIZE - scaledTextWidth) / 2;
-        int textY = iconY - COOLDOWN_TEXT_GAP - scaledTextHeight;
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(textX, textY, 0.0F);
-        guiGraphics.pose().scale(COOLDOWN_TEXT_SCALE, COOLDOWN_TEXT_SCALE, 1.0F);
-        guiGraphics.drawString(font, cooldownText, 1, 1, COOLDOWN_SHADOW_COLOR, false);
-        guiGraphics.drawString(font, cooldownText, 0, 0, COOLDOWN_TEXT_COLOR, false);
         guiGraphics.pose().popPose();
     }
 
