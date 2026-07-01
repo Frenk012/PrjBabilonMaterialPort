@@ -3,6 +3,8 @@ package com.rave.projectbabylonmaterials.network;
 import com.rave.projectbabylonmaterials.ProjectBabylonMaterials;
 import com.rave.projectbabylonmaterials.network.client.ClientboundCritEffectPacket;
 import com.rave.projectbabylonmaterials.network.client.ClientboundDragonsteelCooldownPacket;
+import com.rave.projectbabylonmaterials.network.client.ClientboundShadowFormAfterimagePacket;
+import com.rave.projectbabylonmaterials.network.client.ClientboundShadowFormStatePacket;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -25,6 +27,16 @@ public final class PBNetwork {
                 ClientboundDragonsteelCooldownPacket.TYPE,
                 ClientboundDragonsteelCooldownPacket.STREAM_CODEC,
                 ClientboundDragonsteelCooldownPacket::handle
+        );
+        registrar.playToClient(
+                ClientboundShadowFormStatePacket.TYPE,
+                ClientboundShadowFormStatePacket.STREAM_CODEC,
+                ClientboundShadowFormStatePacket::handle
+        );
+        registrar.playToClient(
+                ClientboundShadowFormAfterimagePacket.TYPE,
+                ClientboundShadowFormAfterimagePacket.STREAM_CODEC,
+                ClientboundShadowFormAfterimagePacket::handle
         );
     }
 }

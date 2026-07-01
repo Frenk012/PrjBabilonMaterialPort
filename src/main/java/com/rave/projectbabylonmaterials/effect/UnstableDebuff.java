@@ -9,12 +9,12 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
-public class UnstableEffect extends MobEffect {
+public class UnstableDebuff extends MobEffect {
     private static final ResourceLocation SPELL_RESIST_ATTRIBUTE_ID = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spell_resist");
     private static final ResourceLocation SPELL_RESIST_REDUCTION_ID = ResourceLocation.fromNamespaceAndPath(ProjectBabylonMaterials.MODID, "unstable_spell_resist_reduction");
     private static final double SPELL_RESIST_REDUCTION_PER_LEVEL = -0.15D;
 
-    public UnstableEffect() {
+    public UnstableDebuff() {
         super(MobEffectCategory.HARMFUL, 0xD6AF2C);
     }
 
@@ -53,7 +53,6 @@ public class UnstableEffect extends MobEffect {
     }
 
     private static AttributeInstance resolveSpellResistAttribute(AttributeMap attributeMap) {
-        // irons_spellbooks spell_resist is a data-driven attribute; resolve its Holder from the registry.
         return BuiltInRegistries.ATTRIBUTE.getHolder(SPELL_RESIST_ATTRIBUTE_ID)
                 .map(attributeMap::getInstance)
                 .orElse(null);
