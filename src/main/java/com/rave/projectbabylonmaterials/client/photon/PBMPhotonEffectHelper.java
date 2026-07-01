@@ -31,6 +31,8 @@ public final class PBMPhotonEffectHelper {
     private static final Map<Integer, OrbitState> ACTIVE_DRAGON_DESCEND_CASTS = new ConcurrentHashMap<>();
     private static final Map<Integer, OrbitState> ACTIVE_GLACIER_CASTS = new ConcurrentHashMap<>();
     private static final Map<Integer, OrbitState> ACTIVE_FIRE_STORM_CASTS = new ConcurrentHashMap<>();
+    private static final Map<Integer, OrbitState> ACTIVE_BASTION_FROST_AURAS = new ConcurrentHashMap<>();
+    private static final Map<Integer, OrbitState> ACTIVE_BASTION_RULE_AURAS = new ConcurrentHashMap<>();
     private static final Quaternionf IDENTITY_ROTATION = new Quaternionf();
     private static final Vector3f UNIT_SCALE = new Vector3f(1.0F, 1.0F, 1.0F);
     private static final ResourceLocation PORTAL_TEXTURE = texture("dragon_descend_spell.png");
@@ -143,6 +145,38 @@ public final class PBMPhotonEffectHelper {
         }
 
         ACTIVE_FIRE_STORM_CASTS.remove(entity.getId());
+    }
+
+    public static void startBastionFrostAura(Entity entity, float radiusBlocks) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide) {
+            return;
+        }
+
+        ACTIVE_BASTION_FROST_AURAS.put(entity.getId(), new OrbitState(entity.getId(), radiusBlocks));
+    }
+
+    public static void stopBastionFrostAura(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        ACTIVE_BASTION_FROST_AURAS.remove(entity.getId());
+    }
+
+    public static void startBastionRuleAura(Entity entity, float radiusBlocks) {
+        if (entity == null || !entity.isAlive() || entity.level() == null || !entity.level().isClientSide) {
+            return;
+        }
+
+        ACTIVE_BASTION_RULE_AURAS.put(entity.getId(), new OrbitState(entity.getId(), radiusBlocks));
+    }
+
+    public static void stopBastionRuleAura(Entity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        ACTIVE_BASTION_RULE_AURAS.remove(entity.getId());
     }
 
     public static void spawnFireStorm(Entity entity, float progress, float height, float radius, int tickCount) {
@@ -584,6 +618,8 @@ public final class PBMPhotonEffectHelper {
             ACTIVE_DRAGON_DESCEND_CASTS.clear();
             ACTIVE_GLACIER_CASTS.clear();
             ACTIVE_FIRE_STORM_CASTS.clear();
+            ACTIVE_BASTION_FROST_AURAS.clear();
+            ACTIVE_BASTION_RULE_AURAS.clear();
             return;
         }
 
@@ -621,7 +657,81 @@ public final class PBMPhotonEffectHelper {
             state.tick++;
         }
 
+        for (OrbitState state : ACTIVE_BASTION_FROST_AURAS.values()) {
+            Entity entity = level.getEntity(state.entityId);
+            if (entity == null || !entity.isAlive()) {
+                ACTIVE_BASTION_FROST_AURAS.remove(state.entityId);
+                continue;
+            }
+
+            spawnBastionFrostAura(effect, entity, state.tick, state.radiusBlocks);
+            state.tick++;
+        }
+
+        for (OrbitState state : ACTIVE_BASTION_RULE_AURAS.values()) {
+            Entity entity = level.getEntity(state.entityId);
+            if (entity == null || !entity.isAlive()) {
+                ACTIVE_BASTION_RULE_AURAS.remove(state.entityId);
+                continue;
+            }
+
+            spawnBastionRuleAura(effect, entity, state.tick, state.radiusBlocks);
+            state.tick++;
+        }
+
     }
+
+    private static void spawnBastionFrostAura(StaticLevelEffect effect, Entity entity, int tick, float radiusBlocks) {
+        float baseAngle = tick * 0.14F;
+        double baseY = entity.getY() + 0.08D;
+        double outerRadius = Math.max(1.2D, radiusBlocks - 0.2D);
+        double innerRadius = Math.max(0.8D, outerRadius * 0.56D);
+        float outerScale = Mth.clamp(radiusBlocks / 8.0F, 0.45F, 1.35F);
+        for (int i = 0; i < 10; i++) {
+            float angle = baseAngle + ((Mth.TWO_PI / 10.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            double radius = outerRadius + (((i & 1) == 0 ? 0.18D : -0.06D) * outerScale);
+            double x = entity.getX() + (cos * radius);
+            double z = entity.getZ() + (sin * radius);
+            createTrailEmitter(SNOWFLAKE_TEXTURE, 0.24F, 14, 0xFFE8F6FF, -sin * 0.02D, 0.012D, cos * 0.02D, (i & 1) == 0 ? 16.0F : -16.0F, angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, new Vector3f((float) x, (float) baseY, (float) z), IDENTITY_ROTATION, UNIT_SCALE);
+        }
+
+        for (int i = 0; i < 6; i++) {
+            float angle = -baseAngle * 0.82F + ((Mth.TWO_PI / 6.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            double x = entity.getX() + (cos * innerRadius);
+            double z = entity.getZ() + (sin * innerRadius);
+            createTrailEmitter(SNOW_TEXTURE, 0.32F, 12, 0xFFBFE8FF, -cos * 0.012D, 0.02D, -sin * 0.012D, (i & 1) == 0 ? 10.0F : -10.0F, -angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, new Vector3f((float) x, (float) (baseY + 0.36D), (float) z), IDENTITY_ROTATION, new Vector3f(1.25F, 1.0F, 1.25F));
+        }
+    }
+
+    private static void spawnBastionRuleAura(StaticLevelEffect effect, Entity entity, int tick, float radiusBlocks) {
+        float baseAngle = tick * 0.18F;
+        double groundY = entity.getY() + 0.1D;
+        double waistY = entity.getY() + Math.max(0.65D, entity.getBbHeight() * 0.42D);
+        double outerRadius = Math.max(1.2D, radiusBlocks - 0.2D);
+        double innerRadius = Math.max(0.82D, outerRadius * 0.55D);
+        for (int i = 0; i < 8; i++) {
+            float angle = baseAngle + ((Mth.TWO_PI / 8.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            createTrailEmitter(PORTAL_TEXTURE, 0.3F, 14, 0xFFD7C2FF, -sin * 0.026D, 0.008D, cos * 0.026D, (i & 1) == 0 ? 18.0F : -18.0F, angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, new Vector3f((float) (entity.getX() + (cos * outerRadius)), (float) groundY, (float) (entity.getZ() + (sin * outerRadius))), IDENTITY_ROTATION, new Vector3f(1.2F, 1.0F, 1.2F));
+        }
+
+        for (int i = 0; i < 5; i++) {
+            float angle = -baseAngle * 0.9F + ((Mth.TWO_PI / 5.0F) * i);
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            createTrailEmitter(PORTAL_TEXTURE, 0.38F, 12, 0xFFF1E8FF, -cos * 0.014D, 0.016D, -sin * 0.014D, (i & 1) == 0 ? 12.0F : -12.0F, -angle * Mth.RAD_TO_DEG)
+                    .emmit(effect, new Vector3f((float) (entity.getX() + (cos * innerRadius)), (float) waistY, (float) (entity.getZ() + (sin * innerRadius))), IDENTITY_ROTATION, UNIT_SCALE);
+        }
+    }
+
     private static void spawnOrbit(StaticLevelEffect effect, Entity entity, int tick) {
         float baseAngle = (tick * ROTATION_SPEED) % Mth.TWO_PI;
         for (int i = 0; i < ORBIT_PARTICLES_PER_TICK; i++) {
@@ -1031,10 +1141,16 @@ public final class PBMPhotonEffectHelper {
 
     private static final class OrbitState {
         private final int entityId;
+        private final float radiusBlocks;
         private int tick;
 
         private OrbitState(int entityId) {
+            this(entityId, 0.0F);
+        }
+
+        private OrbitState(int entityId, float radiusBlocks) {
             this.entityId = entityId;
+            this.radiusBlocks = radiusBlocks;
             this.tick = 0;
         }
     }
