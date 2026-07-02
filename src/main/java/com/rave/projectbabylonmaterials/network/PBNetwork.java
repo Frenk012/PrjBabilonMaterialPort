@@ -28,12 +28,15 @@ public final class PBNetwork {
                 ClientboundDragonsteelCooldownPacket.STREAM_CODEC,
                 ClientboundDragonsteelCooldownPacket::handle
         );
-        registrar.playToClient(
+        // Shadow-form packets are purely cosmetic S2C visuals: register them optional so a
+        // client running an older Materials build can still join the server.
+        PayloadRegistrar optionalRegistrar = registrar.optional();
+        optionalRegistrar.playToClient(
                 ClientboundShadowFormStatePacket.TYPE,
                 ClientboundShadowFormStatePacket.STREAM_CODEC,
                 ClientboundShadowFormStatePacket::handle
         );
-        registrar.playToClient(
+        optionalRegistrar.playToClient(
                 ClientboundShadowFormAfterimagePacket.TYPE,
                 ClientboundShadowFormAfterimagePacket.STREAM_CODEC,
                 ClientboundShadowFormAfterimagePacket::handle
